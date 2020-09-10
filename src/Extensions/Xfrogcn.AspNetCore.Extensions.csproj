@@ -2,6 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <PackOnBuild>true</PackOnBuild>
+    <PackageId>Xfrogcn.AspNetCore.Extensions</PackageId>
+    <PackageVersion>1.0.0-beta2020091101</PackageVersion>
+    <Authors>王海波</Authors>
+    <Copyright>王海波</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
