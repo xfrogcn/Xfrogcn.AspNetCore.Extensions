@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Http;
 using Xfrogcn.AspNetCore.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -10,6 +9,11 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static string DisableEnsureSuccessStatusCode_Key = "DisableEnsureSuccessStatusCode";
 
+        /// <summary>
+        /// 添加一个Mock Http消息处理层，用于单元测试
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
         public static MockHttpMessageHandlerOptions AddMockHttpMessageHandler(this IHttpClientBuilder builder)
         {
             MockHttpMessageHandlerOptions options = new MockHttpMessageHandlerOptions();
@@ -52,17 +56,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder;
         }
 
-        /// <summary>
-        /// 注入HTTP请求日志记录
-        /// </summary>
-        /// <param name="serviceDescriptors"></param>
-        /// <returns></returns>
-        public static IServiceCollection AddHttpMessageHandlerFilter(this IServiceCollection serviceDescriptors)
-        {
-            serviceDescriptors.TryAddEnumerable(ServiceDescriptor.Singleton<IHttpMessageHandlerBuilderFilter, MessageHandlerFilter>());
-            return serviceDescriptors;
-        }
-
+        
 
         public static void DisableEnsureSuccessStatusCode(this HttpRequestMessage request)
         {

@@ -13,6 +13,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         readonly ILoggerFactory _loggerFactory;
         readonly IHttpClientFactory _httpFactory;
         readonly ILogger<ClientCertificateProvider> _logger;
+        readonly IServiceProvider _serviceProvider;
         readonly ConcurrentDictionary<string, ClientCertificateManager> _cache = new ConcurrentDictionary<string, ClientCertificateManager>();
 
         static readonly Action<ILogger, string, string, string, Exception> _logGetClient =
@@ -22,11 +23,13 @@ namespace Xfrogcn.AspNetCore.Extensions
             IOptions<ClientCertificateOptions> options,
             ILoggerFactory loggerFactory,
             IHttpClientFactory httpFactory,
+            IServiceProvider serviceProvider,
             ILogger<ClientCertificateProvider> logger)
         {
             _options = options.Value;
             _loggerFactory = loggerFactory;
             _httpFactory = httpFactory;
+            _serviceProvider = serviceProvider;
 
             _logger = logger;
 
@@ -55,11 +58,21 @@ namespace Xfrogcn.AspNetCore.Extensions
                 {
                     client.AuthUrl = _options.DefaultUrl;
                 }
+
+                TokenCacheManager cacheManager = null;
+                if(client.TokenCacheManager != null)
+                {
+                    cacheManager = client.TokenCacheManager(_serviceProvider, clientId);
+                }
+                else
+                {
+                    cacheManager = TokenCacheManager.MemoryCacheFactory(_serviceProvider, clientId); 
+                }
+
                 return new ClientCertificateManager(
-                    client.AuthUrl, 
-                    client.ClientID, 
-                    client.ClientName, 
-                    client.ClientSecret, 
+                    client,
+                    client.Processor ?? CertificateProcessor.OIDC,
+                    cacheManager,
                     _loggerFactory.CreateLogger<ClientCertificateManager>(), 
                     _httpFactory);
             });
@@ -71,7 +84,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             }
             else
             {
-                _logGetClient(_logger, clientId, cm.ClientName, cm.Url, null);
+                _logGetClient(_logger, clientId, cm.Client?.ClientName, cm.Client?.AuthUrl, null);
             }
             return cm;
         }

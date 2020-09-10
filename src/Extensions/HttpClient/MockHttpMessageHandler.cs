@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {
+   
     public class MockHttpMessageHandler : HttpMessageHandler
     {
         readonly MockHttpMessageHandlerOptions _options = null;

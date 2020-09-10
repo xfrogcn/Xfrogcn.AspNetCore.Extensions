@@ -16,39 +16,14 @@ namespace Xfrogcn.AspNetCore.Extensions
     {
         public const string HTTP_CLIENT_NAME = nameof(ClientCertificateManager);
 
-        class BearerToken
-        {
-            public string token_type { get; set; }
-
-            public string access_token { get; set; }
-
-            public long expires_in { get; set; }
-
-            public DateTime LastGetTime { get; set; }
-
-            public bool IsExpired()
-            {
-                if (((DateTime.UtcNow - LastGetTime).TotalSeconds - expires_in) >= -30)
-                {
-                    return true;
-                }
-                return false;
-            }
-        }
-
-        public string ClientID { get; }
-
-        public string ClientName { get; }
-
-        public string Url { get; }
-
-        public string ClientSecret { get; }
-
+        public ClientCertificateInfo Client { get; }
         private readonly ILogger<ClientCertificateManager> _logger;
 
         private readonly IHttpClientFactory _clientFactory;
 
-        private BearerToken token = null;
+        private readonly CertificateProcessor _processor = null;
+        private readonly TokenCacheManager _cacheManager = null;
+
 
         private object locker = new object();
 
@@ -64,84 +39,75 @@ namespace Xfrogcn.AspNetCore.Extensions
             = LoggerMessage.Define<string, string, string>(LogLevel.Information, new EventId(14, "AutoGetTokenError"), "自动获取令牌异常： url: {url}, clientId: {clientId}, clientName: {clientName}");
 
         public ClientCertificateManager(
-            string url, 
-            string clientId, 
-            string clientName,
-            string clientSecret, 
+            ClientCertificateInfo client,
+            CertificateProcessor processor,
+            TokenCacheManager cacheManager,
             ILogger<ClientCertificateManager> logger,
             IHttpClientFactory clientFactory)
         {
-            Url = url;
-            ClientID = clientId;
-            ClientName = clientName;
-            ClientSecret = clientSecret;
+            Client = client;
+            _processor = processor;
+            _cacheManager = cacheManager;
             _clientFactory = clientFactory;
             _logger = logger;
         }
 
-        private CancellationTokenSource cts = null;
+        
         public async Task<string> GetAccessToken()
         {
+            // 从缓存中获取token
+            TokenCache token = await _cacheManager.GetToken();
+            
             if (token == null || token.IsExpired())
             {
-                bool isWait = false;
-                lock (locker)
+                bool isProcessWithThis = await _cacheManager.Enter();
+                if (!isProcessWithThis)
                 {
-                    if(cts == null)
-                    {
-                        cts = new CancellationTokenSource();
-                    }
-                    else
-                    {
-                        isWait = true;
-                    }
-                }
-
-                if(isWait)
-                {
-                    cts.Token.WaitHandle.WaitOne();
+                    _logger.LogInformation($"由其他管理器处理, {Client.ClientID}");
+                    token = await _cacheManager.GetToken();
                     return token?.access_token;
                 }
 
-                Dictionary<String, string> dic = new Dictionary<string, string>()
-                    {
-                        {"grant_type","client_credentials" },
-                        {"client_id", ClientID },
-                        {"client_secret", ClientSecret }
-                    };
-                var httpClient = _clientFactory.CreateClient(HTTP_CLIENT_NAME);
+                //
                 Stopwatch sw = new Stopwatch();
-                _logRequestTokenStart(_logger, Url, ClientID, ClientName ?? "", null);
+                _logRequestTokenStart(_logger, Client.AuthUrl, Client.ClientID, Client.ClientName ?? "", null);
                 try
                 {
-                    httpClient.BaseAddress = new Uri(Url);
-                    BearerToken bt = await httpClient.SubmitFormAsync<BearerToken>("/connect/token", dic);
-                    if (bt != null && !String.IsNullOrEmpty(bt.access_token))
+                    // 获取Token
+                    DateTime dt = DateTime.Now;
+                    var tokenResponse = await _processor.GetToken(Client, _clientFactory);
+                    if(tokenResponse!=null)
                     {
-                        bt.LastGetTime = DateTime.UtcNow;
+                        token = new TokenCache()
+                        {
+                            access_token = tokenResponse.access_token,
+                            token_type = tokenResponse.token_type,
+                            expires_in = tokenResponse.expires_in,
+                            LastGetTime = dt
+                        };
+                        await _cacheManager.SetToken(token);
                     }
 
-                    token = bt;
                 }
                 catch (Exception e)
                 {
-                    _logRequestTokenError(_logger, Url, ClientID, ClientName, e);
+                    _logRequestTokenError(_logger, Client.AuthUrl, Client.ClientID, Client.ClientName, e);
+                }
+                finally
+                {
+                    await _cacheManager.Exit();
                 }
                 sw.Stop();
-                _logRequestTokenEnd(_logger, sw.ElapsedMilliseconds, Url, ClientID, ClientName ?? "", token?.access_token, null);
-                cts.Cancel();
-                cts = null;
+                _logRequestTokenEnd(_logger, sw.ElapsedMilliseconds, Client.AuthUrl, Client.ClientID, Client.ClientName ?? "", token?.access_token, null);
+
             }
 
             return token?.access_token;
         }
 
-        public void ClearToken()
+        public async Task ClearToken()
         {
-            lock (locker)
-            {
-                token = null;
-            }
+            await _cacheManager.RemoveToken();
         }
 
 
@@ -164,12 +130,12 @@ namespace Xfrogcn.AspNetCore.Extensions
                 }
                 catch (UnauthorizedAccessException e)
                 {
-                    ClearToken();
-                    _logAutoGetToken(_logger, Url, ClientID, ClientName ?? "", null);
+                    await ClearToken();
+                    _logAutoGetToken(_logger, Client.AuthUrl, Client.ClientID, Client.ClientName ?? "", e);
                 }
                 catch (Exception e)
                 {
-                    _logAutoGetTokenError(_logger, Url, ClientID, ClientName ?? "", e);
+                    _logAutoGetTokenError(_logger, Client.AuthUrl, Client.ClientID, Client.ClientName ?? "", e);
                     throw;
                 }
 

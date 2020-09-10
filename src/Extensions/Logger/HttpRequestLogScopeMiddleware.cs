@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {
@@ -11,9 +14,9 @@ namespace Xfrogcn.AspNetCore.Extensions
         private ILoggerFactory _loggerFactory;
         private WebApiConfig _config;
 
-        private IJsonHelper _jsonHelper;
+        private JsonHelper _jsonHelper;
 
-        public HttpRequestLogScopeMiddleware(ILoggerFactory loggerFactory, WebApiConfig config, IJsonHelper jsonHelper)
+        public HttpRequestLogScopeMiddleware(ILoggerFactory loggerFactory, WebApiConfig config, JsonHelper jsonHelper)
         {
             _loggerFactory = loggerFactory;
             _config = config;
@@ -46,7 +49,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
             DateTime d2 = DateTime.Now;
 
-            IDisposable scope = new EmptyDisposable();
+            IDisposable scope = null;
             if (scopeItems.Count > 0)
             {
                 scope = logger.BeginScope(scopeItems);
@@ -158,7 +161,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                 logger.LogWarning($"请求耗时过长：{(d2 - d1).TotalMilliseconds}ms {(d3 - d2).TotalMilliseconds}ms {(d4 - d3).TotalMilliseconds}ms {(d5 - d4).TotalMilliseconds}ms ");
             }
 
-            scope.Dispose();
+            scope?.Dispose();
         }
     }
 }

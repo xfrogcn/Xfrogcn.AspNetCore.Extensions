@@ -1,22 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.Extensions.Http
+namespace System.Net.Http
 {
     /// <summary>
     /// HttpClient的扩展方法
     /// </summary>
     public static class HttpClientExtensions
     {
-        public static IAsyncJsonHelper JsonHelper = new JsonHelper();
+        
 
         public static async Task<TResponse> PostAsync<TResponse>(this HttpClient client, string url, object body, string method = "POST", NameValueCollection queryString = null, NameValueCollection headers = null)
         {    
@@ -30,7 +27,7 @@ namespace Microsoft.Extensions.Http
             {
                 response.EnsureSuccessStatusCode();
             }
-            return await response.GetObject<TResponse>();
+            return await response.GetObjectAsync<TResponse>();
         }
         public static async Task<string> PostAsync(this HttpClient client, string url, object body, string method = "POST", NameValueCollection queryString = null, NameValueCollection headers = null)
         {
@@ -45,7 +42,7 @@ namespace Microsoft.Extensions.Http
             {
                 response.EnsureSuccessStatusCode();
             }
-            return await response.GetObject<TResponse>();
+            return await response.GetObjectAsync<TResponse>();
         }
 
         public static async Task<string> GetAsync(this HttpClient client, string url, NameValueCollection queryString = null, NameValueCollection headers = null)
@@ -66,7 +63,7 @@ namespace Microsoft.Extensions.Http
             {
                 response.EnsureSuccessStatusCode();
             }
-            return await response.GetObject<TResponse>();
+            return await response.GetObjectAsync<TResponse>();
         }
         public static async Task<string> SubmitFormAsync(this HttpClient client, string url, Dictionary<string, string> formData, string method = "POST", NameValueCollection queryString = null, NameValueCollection headers = null)
         {
@@ -96,7 +93,7 @@ namespace Microsoft.Extensions.Http
             {
                 response.EnsureSuccessStatusCode();
             }
-            return await response.GetObject<TResponse>();
+            return await response.GetObjectAsync<TResponse>();
         }
 
         public static async Task<string> PostWithTokenAsync(this HttpClient client, string url, object body, string token, string userId = null, string method = "POST", NameValueCollection queryString = null, NameValueCollection headers = null)
@@ -127,7 +124,7 @@ namespace Microsoft.Extensions.Http
             {
                 response.EnsureSuccessStatusCode();
             }
-            return await response.GetObject<TResponse>();
+            return await response.GetObjectAsync<TResponse>();
         }
 
         public static async Task<string> GetWithTokenAsync(this HttpClient client, string url, string token, string userId = "", NameValueCollection queryString = null, NameValueCollection headers = null)
@@ -140,7 +137,7 @@ namespace Microsoft.Extensions.Http
             url = CreateUrl(url, queryString);
             HttpMethod hm = new HttpMethod(method);
             HttpRequestMessage request = new HttpRequestMessage(hm, url);
-            await request.WriteObject(body);
+            await request.WriteObjectAsync(body);
             request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
             MergeHttpHeaders(request, headers);
             return request;
@@ -163,53 +160,6 @@ namespace Microsoft.Extensions.Http
         }
 
 
-        /// <summary>
-        /// 从Response中获取指定类型的对象
-        /// </summary>
-        /// <typeparam name="TResponse">应答对象类型</typeparam>
-        /// <param name="response">应答消息</param>
-        /// <returns>应答对象</returns>
-        public static async Task<TResponse> GetObject<TResponse>(this HttpResponseMessage response)
-        {
-            if (response == null || response.Content == null)
-            {
-                return default;
-            }
-
-            if (typeof(TResponse) == typeof(string))
-            {
-                return (TResponse)(object)(await response.Content.ReadAsStringAsync());
-            }
-            else
-            {
-                return await JsonHelper.ToObjectAsync<TResponse>(await response.Content.ReadAsStreamAsync());
-            }
-        }
-
-        public static async Task WriteObject(this HttpRequestMessage request, object body)
-        {
-            MemoryStream ms = new MemoryStream();
-            request.Content = new StreamContent(ms);
-           
-            if (body != null)
-            {
-                if (body.GetType() == typeof(string))
-                {
-                    StreamWriter sw = new StreamWriter(ms);
-                    await sw.WriteAsync((string)body);
-                    await sw.FlushAsync();
-                    ms.Position = 0;
-                }
-                else
-                {
-                    await JsonHelper.ToJsonAsync(ms, body);
-                    ms.Flush();
-                    ms.Position = 0;
-                }
-
-            }
-
-        }
 
 
 

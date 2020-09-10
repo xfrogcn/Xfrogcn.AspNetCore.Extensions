@@ -1,7 +1,5 @@
-﻿using Serilog.Events;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using Serilog.Events;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {
@@ -38,7 +36,10 @@ namespace Xfrogcn.AspNetCore.Extensions
         /// </summary>
         public List<string> HttpHeaders { get; set; }
 
-
+        /// <summary>
+        /// 端口
+        /// </summary>
+        public int Port { get; set; }
         /// <summary>
         /// 日志最大长度
         /// </summary>

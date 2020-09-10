@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {
@@ -9,6 +10,7 @@ namespace Xfrogcn.AspNetCore.Extensions
     {
         private readonly ILoggerFactory _loggerFactory = null;
         private readonly IHttpContextAccessor _httpContextAccessor;
+
         
         public MessageHandlerFilter(
             ILoggerFactory loggerFactory, 
@@ -17,6 +19,8 @@ namespace Xfrogcn.AspNetCore.Extensions
             _loggerFactory = loggerFactory;
             _httpContextAccessor = httpContextAccessor;
         }
+
+
 
         public MessageHandlerFilter(ILoggerFactory loggerFactory) :
              this(loggerFactory, (IHttpContextAccessor)null)
