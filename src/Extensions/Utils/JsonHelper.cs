@@ -25,7 +25,7 @@ namespace Xfrogcn.AspNetCore.Extensions
              })
         {
             setting.Converters.Add(new JsonStringEnumConverter());
-            setting.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All);
+            setting.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
         }
 
         /// <summary>
