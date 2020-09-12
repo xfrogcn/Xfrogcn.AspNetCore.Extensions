@@ -19,5 +19,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="TokenProvider\" />
+    <Folder Include="ParallelQueue\" />
   </ItemGroup>
 </Project>
