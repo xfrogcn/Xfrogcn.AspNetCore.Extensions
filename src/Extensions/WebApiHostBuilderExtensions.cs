@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO.Compression;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -9,6 +10,7 @@ using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Extensions.Logging;
+using Serilog.Sinks.File.Archive;
 using Xfrogcn.AspNetCore.Extensions;
 
 namespace Microsoft.AspNetCore.Hosting
@@ -27,9 +29,6 @@ namespace Microsoft.AspNetCore.Hosting
             string appLoglevel = configuration["APP_LOG_LEVEL"];
             string efLogLevel = configuration["EFQUERY_LOG_LEVEL"];
             string port = configuration["APP_PORT"];
-            string checkProxyReady = configuration["CHECK_PROXY_READY"];
-            string checkProxyReadyUrl = configuration["CHECK_PROXY_READY_URL"];
-            string readyResponse = configuration["CHECK_PROXY_READY_RESPONSE"];
             string requestLogLevel = configuration["REQUEST_LOG_LEVEL"];
             string maxLogLenght = configuration["MAX_LOG_LENGTH"];
             string ignoreLongLog = configuration["IGNORE_LONG_LOG"];
@@ -143,8 +142,17 @@ namespace Microsoft.AspNetCore.Hosting
                     {
                         System.IO.Directory.CreateDirectory(logPath);
                     }
-                    logPath = System.IO.Path.Combine(logPath, $"{DateTime.Now:yyyy-MM-dd_HH}.log");
-                    loggerConfiguration = loggerConfiguration.WriteTo.File(logPath);
+                    logPath = System.IO.Path.Combine(logPath, $"logs.log");
+                    ArchiveHooks archiveHooks = new ArchiveHooks(CompressionLevel.Fastest);
+                    loggerConfiguration = loggerConfiguration.WriteTo.File(
+                        logPath,
+                        rollingInterval: RollingInterval.Day,
+                        rollOnFileSizeLimit: true,
+                        fileSizeLimitBytes: 1024*1024*100,
+                        retainedFileCountLimit: 32,
+                        hooks: archiveHooks,
+                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}Scopes:{NewLine}{Properties}{NewLine}{Exception}"
+                        );
                 }
 
                 var logger = loggerConfiguration.CreateLogger();
@@ -158,7 +166,7 @@ namespace Microsoft.AspNetCore.Hosting
                 collection.AddClientTokenProvider(context.Configuration);
 
                 collection.AddSingleton<WebApiConfig>(config);
-                collection.TryAddTransient<ILoggerFactory>(services => new SerilogLoggerFactory(null, true));
+                collection.AddSingleton<ILoggerFactory>(services => new SerilogLoggerFactory(null, true));
 
                 collection.TryAddTransient<JsonHelper>();
 

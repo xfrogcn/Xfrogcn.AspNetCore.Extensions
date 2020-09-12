@@ -56,7 +56,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             //默认记录EFCore查询语句
             EFCoreCommandLevel = LogEventLevel.Debug;
             RequestLogLevel = LogEventLevel.Verbose;
-            ConsoleLog = true;
+            ConsoleLog = false;
             HttpHeaders = new List<string>() { "x-request-id" };
             MaxLogLength = 1024 * 8; //8kb
             IgnoreLongLog = true;
