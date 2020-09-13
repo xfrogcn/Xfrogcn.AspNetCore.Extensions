@@ -32,6 +32,11 @@ namespace Xfrogcn.AspNetCore.Extensions
         public bool ConsoleLog { get; set; }
 
         /// <summary>
+        /// 文件日志
+        /// </summary>
+        public bool FileLog { get; set; }
+
+        /// <summary>
         /// 需要记录到日志的HTTP请求头键
         /// </summary>
         public List<string> HttpHeaders { get; set; }
@@ -56,7 +61,8 @@ namespace Xfrogcn.AspNetCore.Extensions
             //默认记录EFCore查询语句
             EFCoreCommandLevel = LogEventLevel.Debug;
             RequestLogLevel = LogEventLevel.Verbose;
-            ConsoleLog = false;
+            ConsoleLog = true;
+            FileLog = true;
             HttpHeaders = new List<string>() { "x-request-id" };
             MaxLogLength = 1024 * 8; //8kb
             IgnoreLongLog = true;

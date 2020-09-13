@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.IO.Compression;
 using System.Text;
 using Microsoft.AspNetCore.Http;
@@ -123,36 +124,56 @@ namespace Microsoft.AspNetCore.Hosting
                 var loggerConfiguration = new LoggerConfiguration()
                         .MinimumLevel.Is(config.AppLogLevel)
                         .MinimumLevel.Override("Microsoft", config.SystemLogLevel)
+                        .MinimumLevel.Override("Microsoft.AspNetCore", config.AppLogLevel)
+                        .MinimumLevel.Override("Microsoft.Hosting", config.AppLogLevel)
                         .MinimumLevel.Override("System", config.SystemLogLevel)
                         .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", config.EFCoreCommandLevel)
                         .MinimumLevel.Override("System.Net.Http.HttpClient", config.AppLogLevel);
 
                 configureLogger?.Invoke(context, loggerConfiguration);
 
+                if (config.Port > 0)
+                {
+                    builder.UseSetting("URLS", $"http://*:{config.Port}");
+                }
+
                 loggerConfiguration = loggerConfiguration.Enrich.FromLogContext();
 
                 if (config.ConsoleLog)
                 {
-                    loggerConfiguration = loggerConfiguration.WriteTo.Console();
+                    loggerConfiguration = loggerConfiguration.WriteTo.Console(config.SystemLogLevel);
                 }
-                else
+                if(config.FileLog)
                 {
+                    
                     string logPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Logs");
                     if (!System.IO.Directory.Exists(logPath))
                     {
                         System.IO.Directory.CreateDirectory(logPath);
                     }
-                    logPath = System.IO.Path.Combine(logPath, $"logs.log");
+                   // logPath = logPath.TrimEnd(System.IO.Path.DirectorySeparatorChar) + System.IO.Path.DirectorySeparatorChar +  "{Date}/logs.txt";
                     ArchiveHooks archiveHooks = new ArchiveHooks(CompressionLevel.Fastest);
-                    loggerConfiguration = loggerConfiguration.WriteTo.File(
-                        logPath,
-                        rollingInterval: RollingInterval.Day,
-                        rollOnFileSizeLimit: true,
-                        fileSizeLimitBytes: 1024*1024*100,
-                        retainedFileCountLimit: 32,
-                        hooks: archiveHooks,
-                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}Scopes:{NewLine}{Properties}{NewLine}{Exception}"
-                        );
+                    string template = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}Scopes:{NewLine}{Properties}{NewLine}{Exception}";
+                    loggerConfiguration = loggerConfiguration
+                        .WriteTo.Map("SourceContext", (sc, lc) => {
+                            lc.File(
+                                 Path.Combine(logPath, $"{DateTime.Now.ToString("yyyy-MM-dd")}/{sc}.txt"),
+                                 rollingInterval: RollingInterval.Day,
+                                 rollOnFileSizeLimit: true,
+                                 fileSizeLimitBytes: 1024 * 1024 * 100,
+                                 retainedFileCountLimit: 128,
+                                 hooks: archiveHooks,
+                                 outputTemplate: template);
+                        });
+                        //.WriteTo.Map(le => le.Timestamp, (t, lc) => lc.File(
+                        //      Path.Combine(logPath, $"{t.ToString("yyyy-MM-dd")}/logs.txt"),
+                        //      rollingInterval: RollingInterval.Day,
+                        //      rollOnFileSizeLimit: true,
+                        //      fileSizeLimitBytes: 1024 * 1024 * 100,
+                        //      retainedFileCountLimit: 32,
+                        //      hooks: archiveHooks,
+                        //      outputTemplate: template
+                        //      ));
                 }
 
                 var logger = loggerConfiguration.CreateLogger();
@@ -193,7 +214,7 @@ namespace Microsoft.AspNetCore.Hosting
             })
             .ConfigureAppConfiguration((host, b) =>
             {
-
+                
             });
            
 
