@@ -6,6 +6,9 @@ using Microsoft.Extensions.Http;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {
+    /// <summary>
+    /// 获取Token
+    /// </summary>
     public abstract class CertificateProcessor
     {
         public const string HTTP_CLIENT_NAME = nameof(ClientCertificateManager);

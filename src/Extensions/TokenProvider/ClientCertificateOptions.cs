@@ -16,6 +16,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         {
             public CertificateProcessor Processor { get; set; }
 
+            public SetTokenProcessor TokenSetter { get; set; }
 
             public Func<IServiceProvider, string, TokenCacheManager> TokenCacheManager { get; set; }
         }
@@ -25,7 +26,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
         public string DefaultUrl { get; set; }
 
-        public void AddClient(string url, string clientId, string clientSecret, string clientName="", CertificateProcessor processor=null, Func<IServiceProvider, string, TokenCacheManager> tokenManagerFactory=null)
+        public void AddClient(string url, string clientId, string clientSecret, string clientName="", CertificateProcessor processor=null, Func<IServiceProvider, string, TokenCacheManager> tokenManagerFactory=null, SetTokenProcessor tokenSetter = null)
         {
             var old = _clientList.FirstOrDefault(c => c.ClientID == clientId);
             if( old == null)
@@ -40,6 +41,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             old.ClientName = clientName;
             old.Processor = processor;
             old.TokenCacheManager = tokenManagerFactory;
+            old.TokenSetter = tokenSetter;
         }
 
 
@@ -58,6 +60,24 @@ namespace Xfrogcn.AspNetCore.Extensions
             if (old != null && processor != null)
             {
                 old.Processor = CertificateProcessor.CreateDelegateProcessor(processor);
+            }
+        }
+
+        public void SetTokenSetter(string clientId, SetTokenProcessor processor)
+        {
+            var old = _clientList.FirstOrDefault(c => c.ClientID == clientId);
+            if (old != null)
+            {
+                old.TokenSetter = processor;
+            }
+        }
+
+        public void SetTokenSetter(string clientId, Func<HttpRequestMessage, string, Task> processor)
+        {
+            var old = _clientList.FirstOrDefault(c => c.ClientID == clientId);
+            if (old != null && processor != null)
+            {
+                old.TokenSetter = Xfrogcn.AspNetCore.Extensions.SetTokenProcessor.CreateDelegateSetTokenProcessor(processor);
             }
         }
 

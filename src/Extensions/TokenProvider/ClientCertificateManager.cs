@@ -22,6 +22,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         private readonly IHttpClientFactory _clientFactory;
 
         private readonly CertificateProcessor _processor = null;
+        private readonly SetTokenProcessor _tokenSetter = null;
         private readonly TokenCacheManager _cacheManager = null;
 
 
@@ -41,12 +42,14 @@ namespace Xfrogcn.AspNetCore.Extensions
         public ClientCertificateManager(
             ClientCertificateInfo client,
             CertificateProcessor processor,
+            SetTokenProcessor tokenSetter,
             TokenCacheManager cacheManager,
             ILogger<ClientCertificateManager> logger,
             IHttpClientFactory clientFactory)
         {
             Client = client;
             _processor = processor;
+            _tokenSetter = tokenSetter;
             _cacheManager = cacheManager;
             _clientFactory = clientFactory;
             _logger = logger;
@@ -112,7 +115,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
 
 
-        public async Task<TResult> Execute<TResult>(Func<string, Task<TResult>> fun)
+        public async Task<TResult> Execute<TResult>(Func<string, SetTokenProcessor, Task<TResult>> fun)
         {
             TResult result = default(TResult);
             for (int i = 0; i < 3; i++)
@@ -125,7 +128,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                         continue;
                     }
 
-                    result = await fun(accessToken);
+                    result = await fun(accessToken, _tokenSetter);
                     break;
                 }
                 catch (UnauthorizedAccessException e)
