@@ -19,6 +19,37 @@ namespace Xfrogcn.AspNetCore.Extensions
             public SetTokenProcessor TokenSetter { get; set; }
 
             public Func<IServiceProvider, string, TokenCacheManager> TokenCacheManager { get; set; }
+
+
+            public ClientItem SetProcessor(CertificateProcessor processor)
+            {
+                Processor = processor;
+                return this;
+            }
+
+            public ClientItem SetProcessor(Func<ClientCertificateInfo, HttpClient, Task<ClientCertificateToken>> processor)
+            {
+                Processor = CertificateProcessor.CreateDelegateProcessor(processor);
+                return this;
+            }
+
+            public ClientItem SetTokenSetter(SetTokenProcessor processor)
+            {
+                TokenSetter = processor;
+                return this;
+            }
+
+            public ClientItem SetTokenSetter(Func<HttpRequestMessage, string, Task> processor)
+            {
+                TokenSetter = Xfrogcn.AspNetCore.Extensions.SetTokenProcessor.CreateDelegateSetTokenProcessor(processor);
+                return this;
+            }
+
+            public ClientItem SetTokenCacheManager(Func<IServiceProvider, string, TokenCacheManager> func)
+            {
+                TokenCacheManager = func;
+                return this;
+            }
         }
 
         private List<ClientItem> _clientList = new List<ClientItem>();
@@ -26,7 +57,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
         public string DefaultUrl { get; set; }
 
-        public void AddClient(string url, string clientId, string clientSecret, string clientName="", CertificateProcessor processor=null, Func<IServiceProvider, string, TokenCacheManager> tokenManagerFactory=null, SetTokenProcessor tokenSetter = null)
+        public ClientItem AddClient(string url, string clientId, string clientSecret, string clientName="", CertificateProcessor processor=null, Func<IServiceProvider, string, TokenCacheManager> tokenManagerFactory=null, SetTokenProcessor tokenSetter = null)
         {
             var old = _clientList.FirstOrDefault(c => c.ClientID == clientId);
             if( old == null)
@@ -42,6 +73,8 @@ namespace Xfrogcn.AspNetCore.Extensions
             old.Processor = processor;
             old.TokenCacheManager = tokenManagerFactory;
             old.TokenSetter = tokenSetter;
+
+            return old;
         }
 
 
