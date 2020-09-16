@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System.Buffers;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
@@ -56,6 +58,7 @@ namespace System.Net.Http
             HttpMethod hm = new HttpMethod(method);
             HttpRequestMessage request = new HttpRequestMessage(hm, url);
             request.Content = new FormUrlEncodedContent(formData);
+            
             MergeHttpHeaders(request, headers);
 
             var response = await client.SendAsync(request);
@@ -71,65 +74,49 @@ namespace System.Net.Http
         }
 
 
-        public static async Task<TResponse> PostWithTokenAsync<TResponse>(this HttpClient client, string url, object body, string token, string userId = null, string method = "POST", NameValueCollection queryString = null, NameValueCollection headers = null)
+        public static async Task<TResponse> UploadFile<TResponse>(
+            this HttpClient client, 
+            string url, 
+            string fileKey,
+            string file,
+            Dictionary<string, string> formData = null, 
+            string method = "POST", 
+            NameValueCollection queryString = null, 
+            NameValueCollection headers = null)
         {
-            HttpRequestMessage request = await createRequestMessage(method, url, body, queryString, headers);
-            if (!String.IsNullOrEmpty(token))
+            if (!File.Exists(file))
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                throw new FileNotFoundException(file);
+            }
 
-            }
-            if (!String.IsNullOrEmpty(userId))
+            url = CreateUrl(url, queryString);
+            HttpMethod hm = new HttpMethod(method);
+            HttpRequestMessage request = new HttpRequestMessage(hm, url);
+
+            var content = new MultipartFormDataContent();
+            if (formData != null)
             {
-                request.Headers.Add("User", userId);
+                foreach(var kv in formData)
+                {
+                    content.Add(new StringContent(kv.Value), kv.Key);
+                }
             }
-            HttpResponseMessage response = await client.SendAsync(request);
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
-                       response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-            {
-                throw new UnauthorizedAccessException("验证失败");
-            }
+
+            FileStream fileStream = new FileStream(file, FileMode.Open);
+            
+            var fileContent = new StreamContent(fileStream);
+            content.Add(fileContent, fileKey);
+
+            request.Content = content;
+
+            MergeHttpHeaders(request, headers);
+
+            var response = await client.SendAsync(request);
             if (!request.IsDisableEnsureSuccessStatusCode())
             {
                 response.EnsureSuccessStatusCode();
             }
             return await response.GetObjectAsync<TResponse>();
-        }
-
-        public static async Task<string> PostWithTokenAsync(this HttpClient client, string url, object body, string token, string userId = null, string method = "POST", NameValueCollection queryString = null, NameValueCollection headers = null)
-        {
-            return await PostWithTokenAsync<string>(client, url, body, token, userId, method, queryString, headers);
-        }
-
-
-        public static async Task<TResponse> GetWithTokenAsync<TResponse>(this HttpClient client, string url, string token, string userId = "", NameValueCollection queryString = null, NameValueCollection headers = null)
-        {
-            HttpRequestMessage request = await createRequestMessage(HttpMethod.Get.Method, url, null, queryString, headers);
-            if (!String.IsNullOrEmpty(token))
-            {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            }
-            if (!String.IsNullOrEmpty(userId))
-            {
-                request.Headers.Add("User", userId);
-            }
-            HttpResponseMessage response = await client.SendAsync(request);
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
-                       response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-            {
-                throw new UnauthorizedAccessException("验证失败");
-            }
-            if (!request.IsDisableEnsureSuccessStatusCode())
-            {
-                response.EnsureSuccessStatusCode();
-            }
-            return await response.GetObjectAsync<TResponse>();
-        }
-
-        public static async Task<string> GetWithTokenAsync(this HttpClient client, string url, string token, string userId = "", NameValueCollection queryString = null, NameValueCollection headers = null)
-        {
-            return await GetWithTokenAsync<string>(client, url, token, userId, queryString, headers);
         }
 
         private static async Task<HttpRequestMessage> createRequestMessage(string method, string url, object body,NameValueCollection queryString=null, NameValueCollection headers = null, string contentType = "application/json")
