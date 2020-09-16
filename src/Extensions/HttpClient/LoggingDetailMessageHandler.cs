@@ -25,6 +25,20 @@ namespace Xfrogcn.AspNetCore.Extensions
             _logger = logger;
         }
 
+
+        private bool isTextContent(string mediaType)
+        {
+            if(mediaType.Contains("json") ||
+                mediaType.Contains("xml") ||
+                mediaType.Contains("html") ||
+                mediaType.Contains("text")
+                )
+            {
+                return true;
+            }
+            return false;
+        }
+
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
 
@@ -32,9 +46,17 @@ namespace Xfrogcn.AspNetCore.Extensions
             
             if (_logger.IsEnabled(LogLevel.Trace))
             {
-                if (request.Method != HttpMethod.Get)
+                if (request.Method != HttpMethod.Get && request.Content != null)
                 {
-                    requestContent = await request.Content.ReadAsStringAsync();
+                    if (isTextContent(request.Content.Headers.ContentType.MediaType))
+                    {
+                        requestContent = await request.Content.ReadAsStringAsync();
+                    }
+                    else
+                    {
+                        requestContent = await request.Content.ReadAsStringAsync();
+                        requestContent = $"stream content, length: {request.Content.Headers.ContentLength}";
+                    }
                 }
                 if (string.IsNullOrEmpty(requestContent))
                 {

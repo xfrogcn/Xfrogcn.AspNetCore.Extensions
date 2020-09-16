@@ -103,9 +103,18 @@ namespace System.Net.Http
             }
 
             FileStream fileStream = new FileStream(file, FileMode.Open);
-            
-            var fileContent = new StreamContent(fileStream);
-            content.Add(fileContent, fileKey);
+            BinaryReader br = new BinaryReader(fileStream);
+            ByteArrayContent fileContent = new ByteArrayContent(br.ReadBytes((int)fileStream.Length));
+            content.Add(fileContent, fileKey, Path.GetFileName(file));
+
+            //var fileContent = new StreamContent(fileStream);
+            //fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+            //{
+            //    Name = fileKey,
+            //    FileName = Path.GetFileName(file),
+            //    Size = fileStream.Length,
+            //};
+            //content.Add(fileContent, fileKey);
 
             request.Content = content;
 
