@@ -25,6 +25,11 @@ namespace System.Net.Http
             {
                 return (TResponse)(object)(await response.Content.ReadAsStringAsync());
             }
+            else if(typeof(TResponse) == typeof(HttpResponseMessage))
+            {
+                // 如果类型为HttpResponseMessage直接返回
+                return (TResponse)(object)response;
+            }
             else
             {
                 return await JsonHelper.ToObjectAsync<TResponse>(await response.Content.ReadAsStreamAsync());
