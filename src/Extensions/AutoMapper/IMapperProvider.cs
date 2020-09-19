@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using Xfrogcn.AspNetCore.Extensions.AutoMapper;
-
-namespace Xfrogcn.AspNetCore.Extensions
+﻿namespace Xfrogcn.AspNetCore.Extensions
 {
     /// <summary>
     /// 映射转换
@@ -20,5 +14,6 @@ namespace Xfrogcn.AspNetCore.Extensions
         IMapper<TSource, TTarget> GetMapper<TSource, TTarget>()
             where TSource: class
             where TTarget : new();
+
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
+namespace Xfrogcn.AspNetCore.Extensions
 {
     public interface IMapper<TSource, TTarget>
         where TSource: class
