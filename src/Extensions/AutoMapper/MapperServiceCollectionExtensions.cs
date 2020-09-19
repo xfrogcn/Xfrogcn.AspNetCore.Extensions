@@ -17,5 +17,16 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             return serviceDescriptors;
         }
+
+
+        public static IServiceCollection ConfigureLightweightMapper(this IServiceCollection serviceDescriptors, Action<MapperOptions> options)
+        {
+            serviceDescriptors.AddLightweightMapper();
+            if (options != null)
+            {
+                serviceDescriptors.Configure<MapperOptions>(options);
+            }
+            return serviceDescriptors;
+        }
     }
 }

@@ -165,15 +165,6 @@ namespace Microsoft.AspNetCore.Hosting
                                  hooks: archiveHooks,
                                  outputTemplate: template);
                         });
-                        //.WriteTo.Map(le => le.Timestamp, (t, lc) => lc.File(
-                        //      Path.Combine(logPath, $"{t.ToString("yyyy-MM-dd")}/logs.txt"),
-                        //      rollingInterval: RollingInterval.Day,
-                        //      rollOnFileSizeLimit: true,
-                        //      fileSizeLimitBytes: 1024 * 1024 * 100,
-                        //      retainedFileCountLimit: 32,
-                        //      hooks: archiveHooks,
-                        //      outputTemplate: template
-                        //      ));
                 }
 
                 var logger = loggerConfiguration.CreateLogger();
@@ -185,6 +176,9 @@ namespace Microsoft.AspNetCore.Hosting
                 collection.AddHttpMessageHandlerFilter();
                 // 默认从配置的_Clients节点获取客户端列表（以客户端名称为key，下配置clientId,clientSecret)
                 collection.AddClientTokenProvider(context.Configuration);
+
+                //实体转换
+                collection.AddLightweightMapper();
 
                 collection.AddSingleton<WebApiConfig>(config);
                 collection.AddSingleton<ILoggerFactory>(services => new SerilogLoggerFactory(null, true));
