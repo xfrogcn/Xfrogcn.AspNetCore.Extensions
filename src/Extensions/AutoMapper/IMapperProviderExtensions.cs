@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 namespace Xfrogcn.AspNetCore.Extensions
 {
     public static class IMapperProviderExtensions
@@ -8,6 +10,14 @@ namespace Xfrogcn.AspNetCore.Extensions
             where TTarget : new()
         {
             var mapper = provider.GetMapper<TSource, TTarget>();
+            return mapper.Convert(sourceObj);
+        }
+
+        public static List<TTarget> ConvertList<TSource, TTarget>(this IMapperProvider provider, List<TSource> sourceObj)
+            where TSource : class
+            where TTarget : new()
+        {
+            var mapper = provider.GetMapper<List<TSource>, List<TTarget>>();
             return mapper.Convert(sourceObj);
         }
     }

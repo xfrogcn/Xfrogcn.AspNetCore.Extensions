@@ -231,6 +231,14 @@ namespace Xfrogcn.AspNetCore.Extensions
 
         public virtual Expression ConvertClassType(ParameterExpression source, PropertyInfo spi, Expression target, PropertyInfo tpi)
         {
+            if(spi.PropertyType.IsInterface && tpi.PropertyType.IsInterface &&
+                spi.PropertyType == tpi.PropertyType)
+            {
+                return Expression.Assign(
+                       Expression.MakeMemberAccess(target, tpi),
+                       Expression.MakeMemberAccess(source, spi)
+                       );
+            }
            
             if(spi.PropertyType.IsClass && tpi.PropertyType.IsClass)
             {
@@ -251,6 +259,11 @@ namespace Xfrogcn.AspNetCore.Extensions
                 if(exp !=null)
                 {
                     return exp;
+                }
+
+                if(spi.PropertyType == typeof(string) || tpi.PropertyType == typeof(string))
+                {
+                    return null;
                 }
 
                 Expression provider = Expression.Constant(_provider);

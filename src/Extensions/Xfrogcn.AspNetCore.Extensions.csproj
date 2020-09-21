@@ -27,5 +27,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ParallelQueue\" />
+    <Folder Include="Expressions\" />
   </ItemGroup>
 </Project>

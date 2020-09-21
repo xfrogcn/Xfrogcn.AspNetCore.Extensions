@@ -157,6 +157,10 @@ namespace System.Net.Http
             {
                 partKey = "\"\"";
             }
+            else
+            {
+                partKey = $"\"{partKey}\"";
+            }
 
             url = CreateUrl(url, queryString);
             HttpMethod hm = new HttpMethod(method);

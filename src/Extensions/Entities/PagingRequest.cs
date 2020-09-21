@@ -8,9 +8,24 @@ namespace Xfrogcn.AspNetCore.Extensions
     public class PagingRequest
     {
         [JsonPropertyName("pageSize")]
-        public long PageSize { get; set; }
+        public int PageSize { get; set; }
 
         [JsonPropertyName("pageIndex")]
-        public long PageIndex { get; set; }
+        public int PageIndex { get; set; }
+
+
+        public int Skip
+        {
+            get
+            {
+                return (int)((PageIndex - 1) * PageSize);
+            }
+        }
+
+        public void SetToResponse<T>(PagingResponseMessage<T> r)
+        {
+            r.PageIndex = PageIndex;
+            r.PageSize = PageSize;
+        }
     }
 }
