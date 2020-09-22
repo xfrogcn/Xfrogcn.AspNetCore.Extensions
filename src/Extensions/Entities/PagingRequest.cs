@@ -14,6 +14,19 @@ namespace Xfrogcn.AspNetCore.Extensions
         public int PageIndex { get; set; }
 
 
+        public void Normalize(int maxSize = 1000, int defaultSize = 20)
+        {
+            if(PageSize<0 || PageSize>maxSize)
+            {
+                PageSize = defaultSize;
+            }
+            if (PageIndex <= 0)
+            {
+                PageIndex = 1;
+            }
+        }
+
+
         public int Skip
         {
             get
