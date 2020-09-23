@@ -20,5 +20,14 @@ namespace Xfrogcn.AspNetCore.Extensions
             var mapper = provider.GetMapper<List<TSource>, List<TTarget>>();
             return mapper.Convert(sourceObj);
         }
+
+
+        public static void CopyTo<TSource, TTarget>(this IMapperProvider provider, TSource sourceObj, TTarget targetObj)
+            where TSource : class
+            where TTarget : new()
+        {
+            var mapper = provider.GetMapper<TSource, TTarget>();
+            mapper.CopyTo(sourceObj, targetObj);
+        }
     }
 }

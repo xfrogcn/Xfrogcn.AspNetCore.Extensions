@@ -18,14 +18,14 @@ namespace Xfrogcn.AspNetCore.Extensions
             where TSource : class
             where TTarget :  new()
         {
-            public Action<TSource,TTarget> Convert { get; set; }
+            public Action<IMapperProvider, TSource,TTarget> Convert { get; set; }
         }
 
         private readonly List<MapperItem> _mapperList = new List<MapperItem>();
 
         public IReadOnlyList<MapperItem> MapperList => _mapperList;
 
-        public void AddConvert<TSource,TTarget>(Action<TSource,TTarget> converter)
+        public void AddConvert<TSource,TTarget>(Action<IMapperProvider, TSource,TTarget> converter)
             where TSource : class
             where TTarget : new()
         {

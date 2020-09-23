@@ -17,6 +17,8 @@ namespace Xfrogcn.AspNetCore.Extensions
 
         protected Func<TSource, TTarget> _converter = null;
 
+        protected Action<TSource, TTarget> _copy = null;
+
         private static Type[] numbericTypes = new Type[]
         {
             typeof(Byte), typeof(SByte),
@@ -45,45 +47,78 @@ namespace Xfrogcn.AspNetCore.Extensions
                 {
                     if (_converter == null)
                     {
-                        _converter = GenerirConvertDelegate();
+                        _converter = GenerateConvertDelegate();
                     }
                 }
             }
 
-            
-
             return _converter(source);
         }
 
-
-        public virtual Func<TSource, TTarget> GenerirConvertDelegate()
+        public void CopyTo(TSource source, TTarget target)
         {
-            
+            if (_copy == null)
+            {
+                lock (locker)
+                {
+                    if (_copy == null)
+                    {
+                        _copy = GenerateCopyToDelegate();
+                    }
+                }
+            }
+            _copy.Invoke(source, target);
+        }
 
-            Func<TSource, TTarget> converter = GenerirDefaultConvertDelegate();
+        public virtual Action<TSource, TTarget> GenerateCopyToDelegate()
+        {
+            Action<TSource, TTarget> converter = GenerateDefaultCopyToDelegate();
+            ParameterExpression sourcePar = Expression.Parameter(typeof(TSource));
+            ParameterExpression targetPar = Expression.Parameter(typeof(TTarget));
+
+            List<Expression> expList = new List<Expression>();
+            expList.Add(Expression.Invoke(Expression.Constant(converter), sourcePar));
+
+            runConverter(sourcePar, targetPar, expList);
+
+
+            return Expression.Lambda<Action<TSource, TTarget>>(
+                Expression.Block(
+                new ParameterExpression[] { targetPar },
+                expList
+                ), sourcePar).Compile();
+
+        }
+
+        public virtual Action<TSource, TTarget> GenerateDefaultCopyToDelegate()
+        {
+            Type sType = typeof(TSource);
+            Type tType = typeof(TTarget);
+
+            ParameterExpression sourcePar = Expression.Parameter(sType, "source");
+            ParameterExpression targetPar = Expression.Parameter(tType, "target");
+
+            List<Expression> expList = new List<Expression>() { };
+
+            expList.AddRange(GeneratePropertyAssignExpression(sourcePar, targetPar));
+
+            return Expression.Lambda<Action<TSource, TTarget>>(
+                Expression.Block(
+                    new ParameterExpression[] { targetPar },
+                    expList
+                ), sourcePar).Compile();
+        }
+
+        public virtual Func<TSource, TTarget> GenerateConvertDelegate()
+        {
+            Func<TSource, TTarget> converter = GenerateDefaultConvertDelegate();
             ParameterExpression sourcePar = Expression.Parameter(typeof(TSource));
             ParameterExpression targetVar = Expression.Variable(typeof(TTarget));
 
             List<Expression> expList = new List<Expression>();
             expList.Add(Expression.Assign(targetVar, Expression.Invoke(Expression.Constant(converter), sourcePar)));
 
-
-            var list = _options?.GetConverter<TSource, TTarget>();
-            if(list!=null && list.Count > 0)
-            {
-                foreach(var m in list)
-                {
-                    var constM =  Expression.Constant(m);
-                    PropertyInfo pi = m.GetType().GetProperty("Convert", BindingFlags.Public| BindingFlags.Instance);
-                    if (pi != null)
-                    {
-                        Expression piAccess = Expression.MakeMemberAccess(constM, pi);
-                        expList.Add(Expression.IfThen(
-                            Expression.NotEqual(piAccess, Expression.Convert(Expression.Constant(null), pi.PropertyType)),
-                            Expression.Invoke(piAccess, sourcePar, targetVar)));
-                    }
-                }
-            }
+            runConverter(sourcePar, targetVar, expList);
 
             expList.Add(targetVar);
 
@@ -95,15 +130,33 @@ namespace Xfrogcn.AspNetCore.Extensions
 
         }
 
-        public virtual Func<TSource, TTarget> GenerirDefaultConvertDelegate()
+        private void runConverter(ParameterExpression sourcePar, ParameterExpression targetVar, List<Expression> expList)
+        {
+            var list = _options?.GetConverter<TSource, TTarget>();
+            if (list != null && list.Count > 0)
+            {
+                foreach (var m in list)
+                {
+                    var constM = Expression.Constant(m);
+                    PropertyInfo pi = m.GetType().GetProperty("Convert", BindingFlags.Public | BindingFlags.Instance);
+                    if (pi != null)
+                    {
+                        Expression piAccess = Expression.MakeMemberAccess(constM, pi);
+                        expList.Add(Expression.IfThen(
+                            Expression.NotEqual(piAccess, Expression.Convert(Expression.Constant(null), pi.PropertyType)),
+                            Expression.Invoke(piAccess, Expression.Constant(_provider), sourcePar, targetVar)));
+                    }
+                }
+            }
+        }
+
+        public virtual Func<TSource, TTarget> GenerateDefaultConvertDelegate()
         {
             Type sType = typeof(TSource);
             Type tType = typeof(TTarget);
-            List<PropertyInfo> spis = sType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).ToList();
-            List<PropertyInfo> tpis = tType.GetProperties(BindingFlags.Public | BindingFlags.Instance).ToList();
-
+           
             ParameterExpression sourcePar = Expression.Parameter(sType, "source");
-            ParameterExpression targetVar = Expression.Variable(tType, "target");
+            ParameterExpression targetVar =Expression.Variable(tType, "target");
 
             // 如果是字典
             if(IsDictionaryType(sType) && IsDictionaryType(tType))
@@ -118,10 +171,31 @@ namespace Xfrogcn.AspNetCore.Extensions
 
 
 
-            Expression newExpression = Expression.Assign(targetVar, Expression.New(tType));
+            
+            List<Expression> expList = new List<Expression>() {  };
+            
+                Expression newExpression = Expression.Assign(targetVar, Expression.New(tType));
+                expList.Add(newExpression);
 
-            List<Expression> expList = new List<Expression>() { newExpression };
+            expList.AddRange(GeneratePropertyAssignExpression(sourcePar, targetVar));
+            
+            expList.Add(targetVar);
 
+
+            return Expression.Lambda<Func<TSource, TTarget>>(
+                Expression.Block(
+                    new ParameterExpression[] { targetVar },
+                    expList
+                ), sourcePar).Compile();
+        }
+
+        public virtual List<Expression> GeneratePropertyAssignExpression(ParameterExpression sourcePar, ParameterExpression targetPar)
+        {
+            Type sType = typeof(TSource);
+            Type tType = typeof(TTarget);
+            List<PropertyInfo> spis = sType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).ToList();
+            List<PropertyInfo> tpis = tType.GetProperties(BindingFlags.Public | BindingFlags.Instance).ToList();
+            List<Expression> expList = new List<Expression>() { };
             foreach (var pi in spis)
             {
                 var property = tpis.FirstOrDefault(p => p.Name == pi.Name);
@@ -130,7 +204,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                 // 直接转换
                 if (property != null && property.CanWrite)
                 {
-                    var directExp = ConvertProperty(sourcePar, pi, targetVar, property);
+                    var directExp = ConvertProperty(sourcePar, pi, targetPar, property);
                     if (directExp != null)
                     {
                         expList.Add(directExp);
@@ -181,23 +255,15 @@ namespace Xfrogcn.AspNetCore.Extensions
                 }
 
 
-                var exp = ConvertProperty(sourcePar, pi, targetVar, property);
+                var exp = ConvertProperty(sourcePar, pi, targetPar, property);
                 if (exp != null)
                 {
                     expList.Add(exp);
                 }
 
-
+               
             }
-
-            expList.Add(targetVar);
-
-
-            return Expression.Lambda<Func<TSource, TTarget>>(
-                Expression.Block(
-                    new ParameterExpression[] { targetVar },
-                    expList
-                ), sourcePar).Compile();
+            return expList;
         }
 
         /// <summary>
