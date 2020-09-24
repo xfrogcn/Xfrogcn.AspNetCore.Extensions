@@ -138,5 +138,79 @@ namespace Extensions.Tests.AutoMapper
             provider.CopyTo(s1, t1);
             Assert.Null(t1.B);
         }
+
+        class S5 : S1
+        {
+            public int B { get; set; }
+
+            public long C { get; set; }
+
+            [MapperPropertyName(Name = "D1")]
+            public byte? D { get; set; }
+
+            public S5 E { get; set; }
+        }
+
+        class S6 : S2
+        {
+            public string B { get; set; }
+
+            public int C { get; set; }
+
+            
+            public decimal D1 { get; set; }
+
+            public S6 E { get; set; }
+        }
+
+        [Fact(DisplayName = "DefineCopyTo")]
+        public void Test5()
+        {
+            IServiceCollection sc = new ServiceCollection()
+               .AddLightweightMapper();
+
+            IServiceProvider sp = sc.BuildServiceProvider();
+            IMapperProvider provider = sp.GetRequiredService<IMapperProvider>();
+
+            var a1 = provider.DefineCopyTo<S1, S2>(m => m.A);
+            S2 t1 = new S2();
+            S1 s1 = new S1() { A = "10" };
+            a1(s1, t1);
+            Assert.Null(t1.A);
+
+            a1 = provider.DefineCopyTo<S1, S2>(null);
+            a1(s1, t1);
+            Assert.Equal("10", t1.A);
+
+            // 去掉CD属性
+            var a2 = provider.DefineCopyTo<S5, S6>(m => new S5
+            {
+                C = m.C,
+                D = m.D
+            });
+            S5 s2 = new S5() { A = "A", B = 10, C = 2, D = 1, E = new S5() { C = 20, D = 10 } };
+            S6 t2 = new S6();
+            a2(s2, t2);
+            Assert.Equal("A", t2.A);
+            Assert.Null(t2.B);
+            Assert.Equal(0, t2.C);
+            Assert.Equal(0, t2.D1);
+            Assert.Equal(20, t2.E.C);
+            Assert.Equal(10, t2.E.D1);
+
+            a2 = provider.DefineCopyTo<S5, S6>(m => new S5
+            {
+                E = new S5
+                {
+                    C = 0,
+                    D  = null,
+                }
+            });
+            t2.E = new S6();
+            a2(s2, t2);
+            Assert.Equal(2, t2.C);
+            Assert.Equal(0, t2.E.C);
+            Assert.Equal(0, t2.E.D1);
+        }
     }
 }

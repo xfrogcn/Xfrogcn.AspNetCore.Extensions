@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
 namespace Xfrogcn.AspNetCore.Extensions
@@ -19,5 +21,14 @@ namespace Xfrogcn.AspNetCore.Extensions
         /// <param name="source"></param>
         /// <param name="target"></param>
         void CopyTo(TSource source, TTarget target);
+
+        /// <summary>
+        /// 获取一个除去传入属性列表的CopyTo Action
+        /// </summary>
+        /// <param name="excludeProperties"></param>
+        /// <returns></returns>
+        Action<TSource, TTarget> DefineCopyTo(Expression<Func<TSource, object>> excludeProperties);
+
+        Action<TSource, TTarget> GenerateDefaultCopyToDelegateWithExclude(Dictionary<MemberInfo, Expression> excludeProperties);
     }
 }

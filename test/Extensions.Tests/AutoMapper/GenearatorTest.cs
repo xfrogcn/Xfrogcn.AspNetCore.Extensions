@@ -16,6 +16,7 @@ namespace Extensions.Tests.AutoMapper
     {
         enum TestEnum
         {
+            [MapperEnumName("hello")]
             A,
             B
         }
@@ -23,6 +24,7 @@ namespace Extensions.Tests.AutoMapper
         [Fact(DisplayName = "ValueType")]
         public void Test1()
         {
+
             IServiceCollection sc = new ServiceCollection()
                 .AddLightweightMapper();
 
@@ -46,7 +48,7 @@ namespace Extensions.Tests.AutoMapper
             Assert.Equal((byte)10, conv4(10));
             Assert.Null(conv4(300));
 
-            
+
 
             var conv5 = GenerateConverter<TestEnum, int>(provider);
             Assert.Equal(0, conv5(TestEnum.A));
@@ -57,7 +59,26 @@ namespace Extensions.Tests.AutoMapper
             Assert.Equal((TestEnum)10, conv6(10));
 
             var conv7 = GenerateConverter<DateTime?, DateTime>(provider);
-            Assert.Equal(new DateTime(2010, 1, 1), conv7(new DateTime(2010,1,1)));
+            Assert.Equal(new DateTime(2010, 1, 1), conv7(new DateTime(2010, 1, 1)));
+
+            // enum --> string
+            var conv8 = GenerateConverter<TestEnum, string>(provider);
+            Assert.Equal("hello", conv8(TestEnum.A));
+            Assert.Equal("b", conv8(TestEnum.B));
+            Assert.Equal("10", conv8((TestEnum)10));
+
+            // string --> enum
+            var conv9 = GenerateConverter<string, TestEnum>(provider);
+            Assert.Equal(TestEnum.A, conv9("hello"));
+            Assert.Equal(TestEnum.B, conv9("b"));
+            Assert.Equal((TestEnum)10, conv9("10"));
+            Assert.Equal(TestEnum.A, conv9("11A"));
+
+            var conv10 = GenerateConverter<string, TestEnum?>(provider);
+            Assert.Equal(TestEnum.A, conv10("hello"));
+            Assert.Equal(TestEnum.B, conv10("b"));
+            Assert.Equal((TestEnum)10, conv10("10"));
+            Assert.Null(conv10("11A"));
         }
 
 

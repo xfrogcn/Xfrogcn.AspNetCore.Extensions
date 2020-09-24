@@ -69,12 +69,111 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
                     return Expression.Assign(_targetPar, _sourcePar);
                 }
             }
+            if(exp == null)
+            {
+                exp = ConvertEnumTypeToString();
+            }
+            if(exp == null)
+            {
+                exp = ConvertStringToEnumType();
+            }
             if(exp == null && genClass)
             {
                 exp = ConvertClassType();
             }
             return exp;
         }
+
+        #region 枚举
+        public virtual Expression ConvertEnumTypeToString()
+        {
+            if (_sourceType.IsEnum && _targetType == typeof(string))
+            {
+                var dic = getEnumNames(_sourceType);
+                MethodInfo mi = this.GetType().GetMethod("convertEnumToString", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                return Expression.Assign(_targetPar,
+                    Expression.Call(Expression.Constant(this), mi, Expression.Convert(_sourcePar, typeof(Enum)), Expression.Constant(dic)));
+            }
+            return null;
+        }
+
+        public virtual Expression ConvertStringToEnumType()
+        {
+            bool isNullableTarget = _targetType.IsGenericType && _targetType.GetGenericTypeDefinition() == typeof(Nullable<>);
+            Type tType = _targetType;
+            if (isNullableTarget)
+            {
+                tType = _targetType.GetGenericArguments()[0];
+            }
+
+            if (_sourceType == typeof(string) && tType.IsEnum)
+            {
+                var tmpDic = getEnumNames(tType);
+                Dictionary<string, Enum> dic = new Dictionary<string, Enum>(StringComparer.OrdinalIgnoreCase);
+                foreach (var kv in tmpDic)
+                {
+                    dic.Add(kv.Value, kv.Key);
+                }
+
+                MethodInfo mi = this.GetType().GetMethod("convertStringToEnum", BindingFlags.NonPublic | BindingFlags.Instance);
+                ParameterExpression eVar = Expression.Variable(typeof(Enum));
+                var exp = Expression.Assign(eVar, Expression.Call(Expression.Constant(this), mi, _sourcePar, Expression.Constant(tType), Expression.Constant(dic)));
+
+                return Expression.Block(
+                    new ParameterExpression[] { eVar },
+                    exp,
+                    Expression.IfThen(
+                        Expression.NotEqual(eVar, Expression.Constant(null, typeof(Enum))),
+                        Expression.Assign(_targetPar, Expression.Convert(exp, _targetType)
+                    )));
+            }
+            return null;
+        }
+
+
+        private Dictionary<Enum, string> getEnumNames(Type enumType)
+        {
+            Dictionary<Enum, string> dic = new Dictionary<Enum, string>();
+            var fis = enumType.GetFields(BindingFlags.Public | BindingFlags.Static);
+            foreach(var f in fis)
+            {
+                string name = f.Name.ToLower();
+                var attr = f.GetCustomAttribute<MapperEnumNameAttribute>();
+                if(attr!=null && !string.IsNullOrEmpty(attr.Name))
+                {
+                    name = attr.Name;
+                }
+                dic.Add((Enum)f.GetValue(null), name);
+            }
+            return dic;
+        }
+
+        private string convertEnumToString(Enum val, Dictionary<Enum,string> names)
+        {
+            if (names.ContainsKey(val))
+            {
+                return names[val];
+            }
+            return val.ToString().ToLower();
+        }
+
+        private Enum convertStringToEnum(string val, Type enumType, Dictionary<string, Enum> names)
+        {
+            if(names.ContainsKey(val))
+            {
+                return names[val];
+            }
+
+            object t;
+            if(Enum.TryParse(enumType, val, out t))
+            {
+                return (Enum)t;
+            }
+            return default;
+        }
+
+        #endregion
 
         #region 类
         public virtual Expression ConvertClassType()

@@ -227,7 +227,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                 ), sourcePar).Compile();
         }
 
-        public virtual List<Expression> GeneratePropertyAssignExpression(ParameterExpression sourcePar, ParameterExpression targetPar, bool isCopy=false)
+        public virtual List<Expression> GeneratePropertyAssignExpression(ParameterExpression sourcePar, ParameterExpression targetPar, bool isCopy= false, Dictionary<MemberInfo, Expression> excludeProperties = null)
         {
             Type sType = typeof(TSource);
             Type tType = typeof(TTarget);
@@ -239,10 +239,27 @@ namespace Xfrogcn.AspNetCore.Extensions
                 var property = tpis.FirstOrDefault(p => p.Name == pi.Name);
                 property = property ?? tpis.FirstOrDefault(p => p.Name.Equals(pi.Name, StringComparison.OrdinalIgnoreCase));
 
+                Expression excludeExpression = null;
+                if (excludeProperties!=null && excludeProperties.ContainsKey(pi))
+                {
+                    excludeExpression = excludeProperties[pi];
+                }
+                if(excludeExpression?.NodeType == ExpressionType.MemberAccess ||
+                    excludeExpression?.NodeType == ExpressionType.Constant)
+                {
+                    continue;
+                }
+                MemberInitExpression _dic = null;
+                if(excludeExpression is MemberInitExpression mie)
+                {
+                    _dic = mie;
+                }
+                
+
                 // 直接转换
                 if (property != null && property.CanWrite)
                 {
-                    var directExp = ConvertProperty(sourcePar, pi, targetPar, property, isCopy);
+                    var directExp = ConvertProperty(sourcePar, pi, targetPar, property, isCopy, _dic);
                     if (directExp != null)
                     {
                         expList.Add(directExp);
@@ -254,20 +271,20 @@ namespace Xfrogcn.AspNetCore.Extensions
 
                 // 特性
                 var sAttrs = pi.GetCustomAttributes<MapperPropertyNameAttribute>();
-                var tAttrs = pi.GetCustomAttributes<MapperPropertyNameAttribute>();
+               // var tAttrs = pi.GetCustomAttributes<MapperPropertyNameAttribute>();
                 var targetNames = sAttrs.Where(a => a.TargetType != null && a.TargetType.IsAssignableFrom(tType)).Select(a => a.Name).ToList();
                 if (targetNames.Count > 0)
                 {
                     property = tpis.FirstOrDefault(p => targetNames.Contains(p.Name, StringComparer.OrdinalIgnoreCase));
                 }
-                if (property == null)
-                {
-                    targetNames = tAttrs.Where(a => a.SourceType != null && a.SourceType.IsAssignableFrom(sType)).Select(a => a.Name).ToList();
-                    if (targetNames.Count > 0)
-                    {
-                        property = tpis.FirstOrDefault(p => targetNames.Contains(p.Name, StringComparer.OrdinalIgnoreCase));
-                    }
-                }
+                //if (property == null)
+                //{
+                //    targetNames = tAttrs.Where(a => a.SourceType != null && a.SourceType.IsAssignableFrom(sType)).Select(a => a.Name).ToList();
+                //    if (targetNames.Count > 0)
+                //    {
+                //        property = tpis.FirstOrDefault(p => targetNames.Contains(p.Name, StringComparer.OrdinalIgnoreCase));
+                //    }
+                //}
                 if (property == null)
                 {
                     // 默认
@@ -277,15 +294,15 @@ namespace Xfrogcn.AspNetCore.Extensions
                         property = tpis.FirstOrDefault(p => targetNames.Contains(p.Name, StringComparer.OrdinalIgnoreCase));
                     }
                 }
-                if (property == null)
-                {
-                    // 默认
-                    targetNames = tAttrs.Where(a => a.SourceType == null).Select(a => a.Name).ToList();
-                    if (targetNames.Count > 0)
-                    {
-                        property = tpis.FirstOrDefault(p => targetNames.Contains(p.Name, StringComparer.OrdinalIgnoreCase));
-                    }
-                }
+                //if (property == null)
+                //{
+                //    // 默认
+                //    targetNames = tAttrs.Where(a => a.SourceType == null).Select(a => a.Name).ToList();
+                //    if (targetNames.Count > 0)
+                //    {
+                //        property = tpis.FirstOrDefault(p => targetNames.Contains(p.Name, StringComparer.OrdinalIgnoreCase));
+                //    }
+                //}
 
                 if (property == null || !property.CanWrite)
                 {
@@ -293,7 +310,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                 }
 
 
-                var exp = ConvertProperty(sourcePar, pi, targetPar, property, isCopy);
+                var exp = ConvertProperty(sourcePar, pi, targetPar, property, isCopy, _dic);
                 if (exp != null)
                 {
                     expList.Add(exp);
@@ -305,7 +322,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         }
 
         
-        public virtual Expression ConvertProperty(ParameterExpression source, PropertyInfo spi, Expression target, PropertyInfo tpi, bool isCopy)
+        public virtual Expression ConvertProperty(ParameterExpression source, PropertyInfo spi, Expression target, PropertyInfo tpi, bool isCopy , MemberInitExpression excludeProperties)
         {
             ParameterExpression se = ParameterExpression.Variable(spi.PropertyType);
             ParameterExpression te = ParameterExpression.Variable(tpi.PropertyType);
@@ -327,12 +344,19 @@ namespace Xfrogcn.AspNetCore.Extensions
                         PropertyAssignGenerator.IsListType(tType))
                     {
                         
-
                         List<Expression> exp = new List<Expression>();
                         if (tType.IsClass)
                         {
                             exp.Add(Expression.Assign(te, Expression.MakeMemberAccess(target, tpi)));
-                            exp.Add(g.GenerateCopyToExpression());
+                            if (excludeProperties != null)
+                            {
+                                exp.Add(GenerateExcludeAction(spi.PropertyType, tType, se, te, excludeProperties));
+                            }
+                            else
+                            {
+                                
+                                exp.Add(g.GenerateCopyToExpression());
+                            }
                         }
                         else if (PropertyAssignGenerator.IsDictionaryType(tType))
                         {
@@ -414,6 +438,111 @@ namespace Xfrogcn.AspNetCore.Extensions
                     list?.Add(itor.Current);
                 }
             }
+        }
+
+
+        
+        public Action<TSource, TTarget> DefineCopyTo(Expression<Func<TSource, object>> excludeProperties)
+        {
+            Type sType = typeof(TSource);
+            Type tType = typeof(TTarget);
+            if(sType.IsClass && tType.IsClass && tType!=typeof(string) && sType != typeof(string))
+            {
+                Dictionary<MemberInfo, Expression> dic = new Dictionary<MemberInfo, Expression>();
+                if (excludeProperties!=null)
+                {
+
+                    if(excludeProperties.Body is MemberExpression me)
+                    {
+                        dic.Add(me.Member, me);
+                    }else if(excludeProperties.Body is NewExpression ne)
+                    {
+                        foreach(var a in ne.Arguments)
+                        {
+                            if(a is MemberExpression ame)
+                            {
+                                dic.Add(ame.Member, ame);
+                            }
+                        }
+                    }else if(excludeProperties.Body is MemberInitExpression mie)
+                    {
+                        foreach(var a in mie.Bindings)
+                        {
+                            if(a is MemberAssignment mb)
+                            {
+                                dic.Add(a.Member, mb.Expression);
+                            }
+                            
+                        }
+                    }
+                }
+
+                return GenerateDefaultCopyToDelegateWithExclude(dic);
+            }
+            throw new InvalidOperationException("源与目标类型必须为类时，才可使用DefineCopyTo方法");
+        }
+
+
+        public virtual Expression GenerateExcludeAction(Type sourceType, Type targetType, ParameterExpression sourcePar, ParameterExpression targetPar, MemberInitExpression mie)
+        {
+            Dictionary<MemberInfo, Expression> dic = new Dictionary<MemberInfo, Expression>();
+            foreach(var m in mie.Bindings)
+            {
+                if( m is MemberAssignment ma)
+                {
+                    dic.Add(ma.Member, ma.Expression);
+                }
+            }
+
+            MethodInfo pmi = _provider.GetType().GetMethod("GetMapper");
+            pmi = pmi.MakeGenericMethod(sourceType, targetType);
+
+            var mapperType = typeof(IMapper<,>).MakeGenericType(sourceType, targetType);
+            ParameterExpression mapperVar = ParameterExpression.Variable(mapperType);
+            var mmaper = Expression.Assign(mapperVar, Expression.Call(
+                Expression.Constant(_provider),
+                pmi));
+
+            MethodInfo mi = mapperType.GetMethod("GenerateDefaultCopyToDelegateWithExclude", BindingFlags.Public | BindingFlags.Instance);
+            var actionType = typeof(Action<,>).MakeGenericType(sourceType, targetType);
+            var actionVar = Expression.Variable(actionType);
+            var action = Expression.Assign(
+                actionVar,
+                Expression.Call(mapperVar, mi, Expression.Constant(dic)));
+
+            var invoke = Expression.Invoke(actionVar, sourcePar, targetPar);
+
+            return Expression.Block(
+                new ParameterExpression[] { mapperVar, actionVar },
+                mmaper,
+                action,
+                invoke
+                );
+
+        }
+
+        public virtual Action<TSource, TTarget> GenerateDefaultCopyToDelegateWithExclude(Dictionary<MemberInfo, Expression> excludeProperties)
+        {
+            Type sType = typeof(TSource);
+            Type tType = typeof(TTarget);
+
+            ParameterExpression sourcePar = Expression.Parameter(sType, "source");
+            ParameterExpression targetPar = Expression.Parameter(tType, "target");
+            ParameterExpression targetVar = Expression.Variable(tType);
+
+            List<Expression> expList = new List<Expression>() { };
+
+            // 类转换
+            expList.AddRange(GeneratePropertyAssignExpression(sourcePar, targetPar, true, excludeProperties));
+
+
+            return Expression.Lambda<Action<TSource, TTarget>>(
+                Expression.Block(
+                    new ParameterExpression[] { targetVar },
+                    Expression.IfThen(
+                        Expression.NotEqual(Expression.Constant(targetPar), Expression.Constant(null)),
+                        Expression.Block(expList))
+                ), sourcePar, targetPar).Compile();
         }
     }
 }

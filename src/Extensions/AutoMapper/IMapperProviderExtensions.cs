@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {
@@ -22,6 +23,14 @@ namespace Xfrogcn.AspNetCore.Extensions
         {
             var mapper = provider.GetMapper<TSource, TTarget>();
             mapper.CopyTo(sourceObj, targetObj);
+        }
+
+        public static Action<TSource, TTarget> DefineCopyTo<TSource, TTarget>(this IMapperProvider provider, Expression<Func<TSource, object>> excludeProperties)
+            where TSource: class
+            where TTarget : class
+        {
+            var mapper = provider.GetMapper<TSource, TTarget>();
+            return mapper.DefineCopyTo(excludeProperties);
         }
     }
 }
