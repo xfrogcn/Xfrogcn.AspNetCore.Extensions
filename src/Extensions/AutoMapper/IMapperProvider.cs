@@ -11,9 +11,9 @@
         /// <typeparam name="TSource">源类型</typeparam>
         /// <typeparam name="TTarget">目标类型</typeparam>
         /// <returns></returns>
-        IMapper<TSource, TTarget> GetMapper<TSource, TTarget>()
-            where TSource: class
-            where TTarget : new();
+        IMapper<TSource, TTarget> GetMapper<TSource, TTarget>();
+            //where TSource: class
+            //where TTarget : new();
 
     }
 }

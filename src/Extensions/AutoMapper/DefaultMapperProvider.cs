@@ -12,8 +12,8 @@ namespace Xfrogcn.AspNetCore.Extensions
         }
 
         public IMapper<TSource, TTarget> GetMapper<TSource, TTarget>()
-            where TSource : class
-            where TTarget : new()
+            //where TSource : class
+            //where TTarget : new()
         {
             return _serviceProvider.GetRequiredService<IMapper<TSource, TTarget>>();
         }

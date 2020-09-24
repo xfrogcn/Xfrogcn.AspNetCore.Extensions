@@ -27,6 +27,37 @@ namespace Extensions.Tests.AutoMapper
             public int B { get; set; }
         }
 
+        [Fact(DisplayName = "基础类型")]
+        public void Test0_1()
+        {
+            IServiceCollection sc = new ServiceCollection()
+                .AddLightweightMapper();
+
+            IServiceProvider sp = sc.BuildServiceProvider();
+            IMapperProvider provider = sp.GetRequiredService<IMapperProvider>();
+            Assert.Equal(10, provider.Convert<int, int>(10));
+            Assert.Null(provider.Convert<int?, int?>(null));
+            Assert.Equal(10, provider.Convert<int?, int>(10));
+            Assert.Null(provider.Convert<int, byte?>(300));
+            Assert.Equal(0, provider.Convert<int, byte>(300));
+
+            Assert.Equal("A", provider.Convert<string, string>("A"));
+            Assert.Equal(new DateTime(2010, 1, 1), provider.Convert<DateTime, DateTime>(new DateTime(2010,1,1)));
+            Assert.Equal(new DateTime(), provider.Convert<DateTime?, DateTime>(null));
+            Assert.Null(provider.Convert<DateTime?, DateTime?>(null));
+
+            var list = provider.ConvertList<string, string>(new List<string>() { "A","B" });
+            Assert.Equal("B", list[1]);
+
+            var dic = provider.Convert<Dictionary<string, int>, Dictionary<string, byte?>>(new Dictionary<string, int>()
+            {
+                {"A", 300 },
+                {"B", 10 }
+            });
+            Assert.Null(dic["A"]);
+            Assert.Equal(10, dic["B"].Value);
+        }
+
         [Fact(DisplayName = "基础")]
         public void Test1()
         {
@@ -257,12 +288,12 @@ namespace Extensions.Tests.AutoMapper
             IServiceCollection sc = new ServiceCollection()
               .AddLightweightMapper(options=>
               {
-                  options.AddConvert<S1, T1_2>((s, t) =>
+                  options.AddConvert<S1, T1_2>((m, s, t) =>
                   {
                       t.B = t.A + 1;
                   });
                   // 基类转换 ,在父类的转换会作用于子类
-                  options.AddConvert<S1, T1>((s, t) =>
+                  options.AddConvert<S1, T1>((m, s, t) =>
                   {
                       t.A = t.A + 2;
                   });

@@ -5,8 +5,8 @@ using System.Text;
 namespace Xfrogcn.AspNetCore.Extensions
 {
     public interface IMapper<TSource, TTarget>
-        where TSource: class
-        where TTarget : new()
+        //where TSource: class
+        //where TTarget : new()
     {
         /// <summary>
         /// 将source转换为TTarget类型
