@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -107,6 +108,40 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
             }
             return null;
         }
+
+        public virtual Expression GenerateCopyToExpression()
+        {
+            if (_sourceType.IsClass && _targetType.IsClass)
+            {
+
+                Expression provider = Expression.Constant(_mapper);
+                MethodInfo mi = _mapper.GetType().GetMethod(nameof(IMapperProvider.GetMapper));
+
+                mi = mi.MakeGenericMethod(_sourceType, _targetType);
+                var mapperType = typeof(IMapper<,>).MakeGenericType(_sourceType, _targetType);
+                ParameterExpression mapperVar = Expression.Variable(mapperType);
+                Expression assign = Expression.Assign(mapperVar, Expression.Call(provider, mi));
+
+                MethodInfo convertMethod = mapperType.GetMethod("CopyTo");
+
+                var assign2 = Expression.Call(mapperVar, convertMethod, _sourcePar, _targetPar);
+
+                var ifExp = Expression.IfThen(
+                    Expression.AndAlso(
+                        Expression.NotEqual(_sourcePar, Expression.Constant(null)),
+                        Expression.NotEqual(_targetPar, Expression.Constant(null))),
+                    Expression.Block(
+                        new ParameterExpression[] { mapperVar },
+                        assign,
+                        assign2
+                        )
+                    );
+
+                return ifExp;
+            }
+            return null;
+        }
+
         #endregion
 
         #region 值类型

@@ -15,8 +15,6 @@ namespace Xfrogcn.AspNetCore.Extensions
         }
 
         public class MapperItem<TSource, TTarget> : MapperItem
-            //where TSource : class
-            //where TTarget :  new()
         {
             public Action<IMapperProvider, TSource,TTarget> Convert { get; set; }
         }
@@ -26,8 +24,6 @@ namespace Xfrogcn.AspNetCore.Extensions
         public IReadOnlyList<MapperItem> MapperList => _mapperList;
 
         public void AddConvert<TSource,TTarget>(Action<IMapperProvider, TSource,TTarget> converter)
-            //where TSource : class
-            //where TTarget : new()
         {
             if (converter != null)
             {
@@ -41,8 +37,6 @@ namespace Xfrogcn.AspNetCore.Extensions
         }
 
         public IReadOnlyList<MapperItem> GetConverter<TSource, TTarget>()
-            //where TSource : class
-            //where TTarget : new()
         {
             var sType = typeof(TSource);
             var tType = typeof(TTarget);
