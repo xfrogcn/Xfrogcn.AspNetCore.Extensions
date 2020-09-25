@@ -79,6 +79,9 @@ namespace Extensions.Tests.AutoMapper
             Assert.Equal(TestEnum.B, conv10("b"));
             Assert.Equal((TestEnum)10, conv10("10"));
             Assert.Null(conv10("11A"));
+
+            var conv11 = GenerateConverter<List<string>, string>(provider);
+            conv11(new List<string>() { "A" });
         }
 
 

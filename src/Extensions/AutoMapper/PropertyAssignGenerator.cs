@@ -178,9 +178,9 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
         #region 类
         public virtual Expression ConvertClassType()
         {
-            if( _sourceType.IsClass && _targetType.IsClass)
+            if (_sourceType.IsClass && _targetType.IsClass && _targetType != typeof(string))
             {
-               
+
                 Expression provider = Expression.Constant(_mapper);
                 MethodInfo mi = _mapper.GetType().GetMethod(nameof(IMapperProvider.GetMapper));
 
