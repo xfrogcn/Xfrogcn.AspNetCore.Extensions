@@ -239,11 +239,11 @@ namespace Xfrogcn.AspNetCore.Extensions
                 var property = tpis.FirstOrDefault(p => p.Name == pi.Name);
                 property = property ?? tpis.FirstOrDefault(p => p.Name.Equals(pi.Name, StringComparison.OrdinalIgnoreCase));
 
-                Expression excludeExpression = null;
-                if (excludeProperties!=null && excludeProperties.ContainsKey(pi))
-                {
-                    excludeExpression = excludeProperties[pi];
-                }
+                Expression excludeExpression = excludeProperties?.FirstOrDefault(p=>p.Key == pi || (p.Key.DeclaringType == pi.DeclaringType && p.Key.Name == pi.Name)).Value;
+                //if (excludeProperties!=null && excludeProperties.ContainsKey(pi))
+                //{
+                //    excludeExpression = excludeProperties[pi];
+                //}
                 if(excludeExpression?.NodeType == ExpressionType.MemberAccess ||
                     excludeExpression?.NodeType == ExpressionType.Constant)
                 {
