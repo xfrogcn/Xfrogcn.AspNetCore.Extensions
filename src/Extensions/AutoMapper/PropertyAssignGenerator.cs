@@ -68,6 +68,10 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
                 {
                     return Expression.Assign(_targetPar, _sourcePar);
                 }
+                if (_sourceType.IsInterface && _targetType.IsInterface && _sourceType == _targetType)
+                {
+                    return Expression.Assign(_targetPar, _sourcePar);
+                }
             }
             if(exp == null)
             {
@@ -180,6 +184,7 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
         {
             if (_sourceType.IsClass && _targetType.IsClass && _targetType != typeof(string))
             {
+                
 
                 Expression provider = Expression.Constant(_mapper);
                 MethodInfo mi = _mapper.GetType().GetMethod(nameof(IMapperProvider.GetMapper));
