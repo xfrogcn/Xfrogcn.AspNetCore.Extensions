@@ -14,5 +14,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
         Task<bool> TryAddAsync(TEntity entity, CancellationToken token);
 
         Task<(TEntity, bool)> TryTakeAsync(TimeSpan timeout,  CancellationToken token);
+
+        Task StopAsync(CancellationToken token);
     }
 }

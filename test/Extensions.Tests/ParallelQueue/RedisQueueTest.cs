@@ -68,14 +68,17 @@ namespace Extensions.Tests.ParallelQueue
 
             List<Task> task = new List<Task>();
             ConcurrentBag<string> result = new ConcurrentBag<string>();
-            for(int i = 0; i < 4; i++)
+            for(int i = 0; i < 10; i++)
             {
                 task.Add(Task.Run(async () =>
                {
                    try
                    {
                        var (entity, b) = await producer.TryTakeAsync(TimeSpan.FromSeconds(30), default);
-                       result.Add(entity);
+                       if (b)
+                       {
+                           result.Add(entity);
+                       }
                    }catch(Exception e)
                    {
 
@@ -85,13 +88,14 @@ namespace Extensions.Tests.ParallelQueue
 
             await Task.Delay(500);
 
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 10; i++)
             {
                 await producer.TryAddAsync($"A{i}", default);
             }
 
             Task.WaitAll(task.ToArray());
 
+            Assert.Equal(10, result.Count);
             
         }
 
@@ -151,6 +155,39 @@ namespace Extensions.Tests.ParallelQueue
 
             Assert.Equal(100, result.Count);
             Assert.Empty(result.Where(x => string.IsNullOrEmpty(x)));
+        }
+
+        [Fact(DisplayName = "Redis:停止")]
+        public async Task Task4()
+        {
+            IServiceCollection sc = new ServiceCollection()
+               .AddExtensions();
+
+            string queueName = $"test_{StringExtensions.RandomString(4)}";
+            sc.AddParallelQueueProducer<string>(queueName, options =>
+            {
+                options.UseRedis(redis =>
+                {
+                    redis.Configuration = "localhost:6379";
+                });
+            });
+            var sp = sc.BuildServiceProvider();
+            var factory = sp.GetRequiredService<IParallelQueueProducerFactory>();
+            var producer = factory.CreateProducer<string>(queueName);
+
+            _ = Task.Run(async () =>
+              {
+                  while (true)
+                  {
+                      await producer.TryTakeAsync(TimeSpan.FromSeconds(10), default);
+                  }
+              });
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            await producer.StopAsync(default);
+            sw.Stop();
+            Assert.True(sw.Elapsed.TotalSeconds < 5);
+
         }
     }
 }

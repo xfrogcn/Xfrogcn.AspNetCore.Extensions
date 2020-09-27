@@ -22,6 +22,10 @@ namespace Extensiions.RedisQueueProducer
 
         private readonly string _instance;
         QueueType _queueType;
+        ISubscriber sub = null;
+        CancellationTokenSource _stopTokenSource = null;
+        private Action<RedisChannel, RedisValue> _subAction = null;
+        private object _locker = new object();
 
         public QueueProducer(string name, RedisOptions redisOptions)
         {
@@ -33,7 +37,7 @@ namespace Extensiions.RedisQueueProducer
             {
                 _queueType = QueueType.FIFO;
             }
-
+            _stopTokenSource = new CancellationTokenSource();
         }
 
         public async Task<bool> TryAddAsync(TEntity entity, CancellationToken token)
@@ -51,161 +55,47 @@ namespace Extensiions.RedisQueueProducer
                 _queueRedisKey,
                 bytes);
 
-            ISubscriber sub = _connection.GetSubscriber();
             await  sub.PublishAsync(_queueRedisKey+"_msg", "1");
             return true;
         }
 
-        class CacheItem {
+        class CacheItem
+        {
             public CancellationTokenSource cts { get; set; }
 
             public TEntity entity { get; set; }
 
-            public Action Callback { get; set; }
-
             public bool IsOk { get; set; }
-        }
 
-        private Action<RedisChannel, RedisValue> _subAction = null;
-        private List<CacheItem> ctsQueue = new List<CacheItem>();
-        private object _locker = new object();
-        public long _dirCount = 0;
+        }
+        
         public async Task<(TEntity, bool)> TryTakeAsync(TimeSpan timeout, CancellationToken token)
         {
             await ConnectAsync(token);
 
-            bool isNoneData = false;
-            // isLooping, 订阅处理过程正在处理
-            if (_waitRequest == null && !_isLooping)
-            {
-                var (entity, isOK) = await InnerTryTakeAsync();
-                if (isOK)
-                {
-                    _dirCount++;
-                    return (entity, isOK);
-                }
-                isNoneData = true;
-            }
-
             CancellationTokenSource cts = new CancellationTokenSource(timeout);
+            cts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, token);
             CacheItem ci = new CacheItem()
             {
                 cts = cts,
             };
-            lock (_locker)
-            {
-                ci.Callback = () =>
-                {
-                    lock (_locker)
-                    {
-                        ctsQueue.Remove(ci);
-                    }
-                };
-
-               
-                cts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, token);
-
-                if (_subAction == null)
-                {
-                    // 只允许一个订阅通道
-                    _subAction = handleSubscribe;
-                    ISubscriber sub = _connection.GetSubscriber();
-                    sub.Subscribe(_queueRedisKey + "_msg", _subAction);
-                }
-                ctsQueue.Add(ci);
-
-                if (_waitRequest != null)
-                {
-                    _waitRequest.Cancel();
-                    _waitRequest = null;
-                }
-            }
-
-            if(!isNoneData && !_isLooping && _waitRequest == null)
-            {
-                ISubscriber sub = _connection.GetSubscriber();
-                await sub.PublishAsync(_queueRedisKey + "_msg", "1");
-            }
-
+            _readQueue.Add(ci);
+           
             cts.Token.WaitHandle.WaitOne();
-            if (!ci.IsOk)
-            {
-                ci.Callback();
-            }
+           
 
             return (ci.entity,ci.IsOk);
         }
 
-        private CancellationTokenSource _waitRequest = null;
-        private bool _isLooping = false;
         private void handleSubscribe(RedisChannel channel, RedisValue val)
         {
-           
-            while (true)
-            {
-                lock (_locker)
-                {
-                    _isLooping = true;
-                    if (ctsQueue.Count == 0)
-                    {
-                        _isLooping = false;
-                        break;
-                    }
-                }
-                var (entity, isOK) = InnerTryTakeAsync().Result;
-                if (!isOK)
-                {
-                    // 被其他机器获取了
-                    break;
-                }
-                
-                while (true)
-                {
-                    CacheItem ci = null;
-                    lock (_locker)
-                    {
-                        while (ctsQueue.Count > 0)
-                        {
-                            ci = ctsQueue[0];
-                            ctsQueue.Remove(ci);
-                            if (ci.cts.IsCancellationRequested)
-                            {
-                                continue;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-
-                        if(ci == null)
-                        {
-                            lock (_locker)
-                            {
-                                _waitRequest = new CancellationTokenSource();
-                            }
-                        }
-                    }
-                    if (ci != null)
-                    {
-                        ci.IsOk = true;
-                        ci.entity = entity;
-                        ci.cts.Cancel();
-                        break;
-                    }
-                    else
-                    {
-                        //
-                        _waitRequest.Token.WaitHandle.WaitOne();
-                    }
-                }
-
-            }
             lock (_locker)
             {
-                _isLooping = false;
+               if(_waitQueue != null)
+                {
+                    _waitQueue.Cancel();
+                }
             }
-            
         }
 
         protected virtual async Task<(TEntity, bool)> InnerTryTakeAsync()
@@ -255,11 +145,114 @@ namespace Extensiions.RedisQueueProducer
                         _connection = await ConnectionMultiplexer.ConnectAsync(_redisOptions.Configuration);
                     }
                     _cache = _connection.GetDatabase();
+
+                    // 设置
+                    if (_subAction == null)
+                    {
+                        sub = _connection.GetSubscriber();
+                        _subAction = handleSubscribe;
+                        sub.Subscribe(_queueRedisKey + "_msg", _subAction);
+                        _ = Task.Run(() =>
+                        {
+                            _ = reader(_stopTokenSource.Token);
+                        });
+                    }
                 }
             }
             finally
             {
                 _connectionLock.Release();
+            }
+        }
+
+        CancellationTokenSource _stoppingTokenSource = null;
+        public Task StopAsync(CancellationToken token)
+        {
+            _stoppingTokenSource = new CancellationTokenSource();
+            _stopTokenSource.Cancel();
+            _stoppingTokenSource.Token.WaitHandle.WaitOne(TimeSpan.FromSeconds(5));
+            return Task.CompletedTask;
+        }
+
+
+
+        BlockingCollection<CacheItem> _readQueue = new BlockingCollection<CacheItem>();
+        CancellationTokenSource _waitQueue = null;
+        CancellationTokenSource _queueNotify = null;
+        private async Task reader(CancellationToken cancellationToken)
+        {
+            bool needReadCache = true;
+            CacheItem lastCacheItem = null;
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    CacheItem ci = null;
+                    if (needReadCache)
+                    {
+                        if (!_readQueue.TryTake(out ci, -1, cancellationToken))
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        ci = lastCacheItem;
+                    }
+
+                    // 已经被取消
+                    if (ci.cts.IsCancellationRequested)
+                    {
+                        continue;
+                    }
+
+
+                    // 读取缓存
+                    var (entity, isOk) = await InnerTryTakeAsync();
+                    if (isOk)
+                    {
+                        ci.entity = entity;
+                        ci.IsOk = true;
+                        ci.cts.Cancel();
+                        needReadCache = true;
+                        lastCacheItem = null;
+                    }
+                    else
+                    {
+                        // 等待信号 (有队列数据或者过期）
+                        lock (_locker)
+                        {
+                            _queueNotify = new CancellationTokenSource();
+                            _waitQueue = CancellationTokenSource.CreateLinkedTokenSource(
+                                _queueNotify.Token,
+                                ci.cts.Token);
+                        }
+                        if (_waitQueue != null)
+                        {
+                            _waitQueue.Token.WaitHandle.WaitOne();
+                        }
+                        // 读取过期
+                        if (ci.cts.IsCancellationRequested)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            needReadCache = false;
+                            lastCacheItem = ci;
+                        }
+
+                    }
+
+                }
+                catch (Exception e)
+                {
+
+                }
+            }
+            if (_stoppingTokenSource!=null)
+            {
+                _stoppingTokenSource.Cancel();
             }
         }
     }
