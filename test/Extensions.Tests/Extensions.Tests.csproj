@@ -16,10 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Extensiions.RedisQueueProducer\Xfrogcn.AspNetCore.Extensiions.RedisQueueProducer.csproj" />
     <ProjectReference Include="..\..\src\Extensions\Xfrogcn.AspNetCore.Extensions.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="TokenProvider\" />
-    <Folder Include="ParallelQueue\" />
   </ItemGroup>
 </Project>

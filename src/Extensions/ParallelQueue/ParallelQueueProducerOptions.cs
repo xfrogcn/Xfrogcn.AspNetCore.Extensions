@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,31 +7,19 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
 {
     public class ParallelQueueProducerOptions<TEntity>
     {
-        private readonly Dictionary<string, Func<string, IParallelQueueProducer<TEntity>>> creatorMapper
-            = new Dictionary<string, Func<string, IParallelQueueProducer<TEntity>>>();
+        public IServiceCollection Services { get; set; }
 
-        public void AddProducer(string name, Func<string, IParallelQueueProducer<TEntity>> creator)
+        public string Name { get; internal set; }
+   
+        Func<IServiceProvider, string, IParallelQueueProducer<TEntity>> _creator;
+        public void SetProducer(Func<IServiceProvider, string, IParallelQueueProducer<TEntity>> creator)
         {
-            lock (creatorMapper)
-            {
-                if (creatorMapper.ContainsKey(name))
-                {
-                    creatorMapper[name] = creator;
-                }
-                else
-                {
-                    creatorMapper.Add(name, creator);
-                }
-            }
+            _creator = creator;
         }
 
-        internal Func<string, IParallelQueueProducer<TEntity>> GetCreator(string name)
+        internal Func<IServiceProvider, string, IParallelQueueProducer<TEntity>> GetCreator()
         {
-            if(creatorMapper.ContainsKey(name))
-            {
-                return creatorMapper[name];
-            }
-            return null;
+            return _creator;
         }
     }
 }

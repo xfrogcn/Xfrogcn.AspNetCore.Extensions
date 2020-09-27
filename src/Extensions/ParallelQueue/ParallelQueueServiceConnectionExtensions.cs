@@ -64,6 +64,11 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddParallelQueueProducer<TEntity>(this IServiceCollection serviceDescriptors, string name, Action<ParallelQueueProducerOptions<TEntity>> configAction)
         {
             serviceDescriptors.TryAddSingleton<IParallelQueueProducerFactory, DefaultParallelQueueProducerFactory>();
+            serviceDescriptors.Configure<ParallelQueueProducerOptions<TEntity>>(name, options =>
+            {
+                options.Name = name;
+                options.Services = serviceDescriptors;
+            });
             serviceDescriptors.Configure(name, configAction);
             return serviceDescriptors;
         }

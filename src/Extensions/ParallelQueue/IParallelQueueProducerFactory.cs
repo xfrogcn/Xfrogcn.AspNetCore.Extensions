@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Xfrogcn.AspNetCore.Extensions.ParallelQueue;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {

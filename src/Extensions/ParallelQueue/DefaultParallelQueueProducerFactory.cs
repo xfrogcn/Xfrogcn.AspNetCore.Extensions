@@ -2,11 +2,8 @@
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
-using Xfrogcn.AspNetCore.Extensions.ParallelQueue;
 
-namespace Xfrogcn.AspNetCore.Extensions
+namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
 {
     public class DefaultParallelQueueProducerFactory : IParallelQueueProducerFactory
     {
@@ -21,17 +18,17 @@ namespace Xfrogcn.AspNetCore.Extensions
         {
             return _cache.GetOrAdd(queueName, (key) =>
             {
-                var options = _serviceProvider.GetService<IOptions<ParallelQueueProducerOptions<TEntity>>>();
+                var options = _serviceProvider.GetService<IOptionsSnapshot<ParallelQueueProducerOptions<TEntity>>>();
                 if (options == null || options.Value == null)
                 {
                     throw new InvalidOperationException("未配置队列生产者");
                 }
-                var producer = options.Value.GetCreator(queueName);
+                var producer = options.Get(queueName).GetCreator();
                 if (producer == null)
                 {
                     throw new InvalidOperationException($"未配置队列:{queueName}");
                 }
-                return producer(queueName);
+                return producer(_serviceProvider,queueName);
             }) as IParallelQueueProducer<TEntity>;
 
         }
