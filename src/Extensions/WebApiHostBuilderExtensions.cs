@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
@@ -171,23 +172,11 @@ namespace Microsoft.AspNetCore.Hosting
 
                 Log.Logger = logger;
 
-                // 注入消息日志消息处理器
-                collection.AddHttpClient();
-                collection.AddHttpMessageHandlerFilter();
+                collection.AddExtensions();
                 // 默认从配置的_Clients节点获取客户端列表（以客户端名称为key，下配置clientId,clientSecret)
                 collection.AddClientTokenProvider(context.Configuration);
-
-                //实体转换
-                collection.AddLightweightMapper();
-
                 collection.AddSingleton<WebApiConfig>(config);
                 collection.AddSingleton<ILoggerFactory>(services => new SerilogLoggerFactory(null, true));
-
-                collection.TryAddTransient<JsonHelper>();
-
-                collection.TryAddTransient<HttpRequestLogScopeMiddleware>();
-                collection.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-                collection.AddTransient<IAutoRetry, AutoRetry>();
 
                 collection.AddSingleton<IStartupFilter, WebApiStartupFilter>();
 
@@ -214,6 +203,9 @@ namespace Microsoft.AspNetCore.Hosting
 
             return builder;
         }
+
+            
+            
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
