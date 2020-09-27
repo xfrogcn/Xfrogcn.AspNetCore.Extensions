@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>Xfrogcn.AspNetCore.Extensiions.RedisQueueProducer</AssemblyName>
+    <RootNamespace>Xfrogcn.AspNetCore.Extensiions</RootNamespace>
+  </PropertyGroup>
+
+</Project>

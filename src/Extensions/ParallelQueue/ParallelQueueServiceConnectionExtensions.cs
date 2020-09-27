@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Xfrogcn.AspNetCore.Extensions;
 using Xfrogcn.AspNetCore.Extensions.ParallelQueue;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -54,8 +55,16 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             serviceDescriptors.AddOptions();
             serviceDescriptors.TryAddSingleton<IParallelQueueConsumerFactory, DefaultParallelQueueConsumerFactory>();
+            serviceDescriptors.TryAddSingleton<IParallelQueueProducerFactory, DefaultParallelQueueProducerFactory>();
             configAction = configAction ?? (_ => { });
             serviceDescriptors.Configure<ParallelQueueConsumerOptions<TEntity, TState>>(name, configAction);
+            return serviceDescriptors;
+        }
+
+        public static IServiceCollection AddParallelQueueProducer<TEntity>(this IServiceCollection serviceDescriptors, string name, Action<ParallelQueueProducerOptions<TEntity>> configAction)
+        {
+            serviceDescriptors.TryAddSingleton<IParallelQueueProducerFactory, DefaultParallelQueueProducerFactory>();
+            serviceDescriptors.Configure(name, configAction);
             return serviceDescriptors;
         }
     }

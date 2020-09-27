@@ -26,7 +26,6 @@
     <PackageReference Include="Serilog.Sinks.Map" Version="1.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ParallelQueue\" />
     <Folder Include="Expressions\" />
   </ItemGroup>
 </Project>
