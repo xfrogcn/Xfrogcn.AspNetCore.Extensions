@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Xfrogcn.AspNetCore.Extensions;
 using Xfrogcn.AspNetCore.Extensions.ParallelQueue;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -63,13 +64,19 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IServiceCollection AddParallelQueueProducer<TEntity>(this IServiceCollection serviceDescriptors, string name, Action<ParallelQueueProducerOptions<TEntity>> configAction)
         {
+            serviceDescriptors.AddOptions();
             serviceDescriptors.TryAddSingleton<IParallelQueueProducerFactory, DefaultParallelQueueProducerFactory>();
-            serviceDescriptors.Configure<ParallelQueueProducerOptions<TEntity>>(name, options =>
+            //serviceDescriptors.Configure<ParallelQueueProducerOptions<TEntity>>(name, options =>
+            //{
+            //    options.Name = name;
+            //    options.Services = serviceDescriptors;
+            //});
+           // serviceDescriptors.AddOptions<ParallelQueueProducerOptions<TEntity>>(name);
+            serviceDescriptors.AddTransient<IConfigureNamedOptions<ParallelQueueProducerOptions<TEntity>>>(services =>
             {
-                options.Name = name;
-                options.Services = serviceDescriptors;
+                return new ConfigureNamedOptions<ParallelQueueProducerOptions<TEntity>>(name, configAction);
             });
-            serviceDescriptors.Configure(name, configAction);
+           // serviceDescriptors.Configure<ParallelQueueProducerOptions<TEntity>>(name, configAction);
             return serviceDescriptors;
         }
     }
