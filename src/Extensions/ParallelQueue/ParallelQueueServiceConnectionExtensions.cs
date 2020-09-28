@@ -66,17 +66,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             serviceDescriptors.AddOptions();
             serviceDescriptors.TryAddSingleton<IParallelQueueProducerFactory, DefaultParallelQueueProducerFactory>();
-            //serviceDescriptors.Configure<ParallelQueueProducerOptions<TEntity>>(name, options =>
-            //{
-            //    options.Name = name;
-            //    options.Services = serviceDescriptors;
-            //});
-           // serviceDescriptors.AddOptions<ParallelQueueProducerOptions<TEntity>>(name);
-            serviceDescriptors.AddTransient<IConfigureNamedOptions<ParallelQueueProducerOptions<TEntity>>>(services =>
-            {
-                return new ConfigureNamedOptions<ParallelQueueProducerOptions<TEntity>>(name, configAction);
-            });
-           // serviceDescriptors.Configure<ParallelQueueProducerOptions<TEntity>>(name, configAction);
+            serviceDescriptors.Configure<ParallelQueueProducerOptions<TEntity>>(name, configAction);
             return serviceDescriptors;
         }
     }
