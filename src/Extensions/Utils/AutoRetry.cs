@@ -23,6 +23,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                 try
                 {
                     await proc();
+                    break;
                 }
                 catch (System.Exception e)
                 {
@@ -127,6 +128,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                 try
                 {
                     proc();
+                    break;
                 }
                 catch (System.Exception e)
                 {

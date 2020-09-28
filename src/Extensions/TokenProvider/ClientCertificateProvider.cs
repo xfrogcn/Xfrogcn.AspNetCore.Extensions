@@ -73,6 +73,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                     client,
                     client.Processor ?? CertificateProcessor.OIDC,
                     client.TokenSetter ?? SetTokenProcessor.Bearer,
+                    client.ResponseChecker ?? CheckResponseProcessor.NormalChecker,
                     cacheManager,
                     _loggerFactory.CreateLogger<ClientCertificateManager>(), 
                     _httpFactory);

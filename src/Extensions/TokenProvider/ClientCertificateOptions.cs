@@ -20,6 +20,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
             public Func<IServiceProvider, string, TokenCacheManager> TokenCacheManager { get; set; }
 
+            public CheckResponseProcessor ResponseChecker { get; set; }
 
             public ClientItem SetProcessor(CertificateProcessor processor)
             {
@@ -45,6 +46,19 @@ namespace Xfrogcn.AspNetCore.Extensions
                 return this;
             }
 
+            public ClientItem SetResponseChecker(CheckResponseProcessor processor)
+            {
+                ResponseChecker = processor;
+                return this;
+            }
+
+            public ClientItem SetResponseChecker(Func<HttpResponseMessage, Task> processor)
+            {
+                ResponseChecker = Xfrogcn.AspNetCore.Extensions.CheckResponseProcessor.CreateDelegateCheckResponseProcessor(processor);
+                return this;
+            }
+
+
             public ClientItem SetTokenCacheManager(Func<IServiceProvider, string, TokenCacheManager> func)
             {
                 TokenCacheManager = func;
@@ -57,7 +71,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
         public string DefaultUrl { get; set; }
 
-        public ClientItem AddClient(string url, string clientId, string clientSecret, string clientName="", CertificateProcessor processor=null, Func<IServiceProvider, string, TokenCacheManager> tokenManagerFactory=null, SetTokenProcessor tokenSetter = null)
+        public ClientItem AddClient(string url, string clientId, string clientSecret, string clientName="", CertificateProcessor processor=null, Func<IServiceProvider, string, TokenCacheManager> tokenManagerFactory=null, SetTokenProcessor tokenSetter = null, CheckResponseProcessor responseChecker = null)
         {
             var old = _clientList.FirstOrDefault(c => c.ClientID == clientId);
             if( old == null)
@@ -73,6 +87,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             old.Processor = processor;
             old.TokenCacheManager = tokenManagerFactory;
             old.TokenSetter = tokenSetter;
+            old.ResponseChecker = responseChecker;
 
             return old;
         }
@@ -111,6 +126,24 @@ namespace Xfrogcn.AspNetCore.Extensions
             if (old != null && processor != null)
             {
                 old.TokenSetter = Xfrogcn.AspNetCore.Extensions.SetTokenProcessor.CreateDelegateSetTokenProcessor(processor);
+            }
+        }
+
+        public void SetResponseChecker(string clientId, CheckResponseProcessor processor)
+        {
+            var old = _clientList.FirstOrDefault(c => c.ClientID == clientId);
+            if (old != null)
+            {
+                old.ResponseChecker = processor;
+            }
+        }
+
+        public void SetResponseChecker(string clientId, Func<HttpResponseMessage, Task> processor)
+        {
+            var old = _clientList.FirstOrDefault(c => c.ClientID == clientId);
+            if (old != null && processor != null)
+            {
+                old.ResponseChecker = Xfrogcn.AspNetCore.Extensions.CheckResponseProcessor.CreateDelegateCheckResponseProcessor(processor);
             }
         }
 

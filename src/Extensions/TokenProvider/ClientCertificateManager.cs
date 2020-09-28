@@ -24,6 +24,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         private readonly CertificateProcessor _processor = null;
         private readonly SetTokenProcessor _tokenSetter = null;
         private readonly TokenCacheManager _cacheManager = null;
+        private readonly CheckResponseProcessor _responseChecker = null;
 
 
         private object locker = new object();
@@ -43,6 +44,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             ClientCertificateInfo client,
             CertificateProcessor processor,
             SetTokenProcessor tokenSetter,
+            CheckResponseProcessor responseChecker,
             TokenCacheManager cacheManager,
             ILogger<ClientCertificateManager> logger,
             IHttpClientFactory clientFactory)
@@ -50,6 +52,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             Client = client;
             _processor = processor;
             _tokenSetter = tokenSetter;
+            _responseChecker = responseChecker;
             _cacheManager = cacheManager;
             _clientFactory = clientFactory;
             _logger = logger;
@@ -115,7 +118,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
 
 
-        public async Task<TResult> Execute<TResult>(Func<string, SetTokenProcessor, Task<TResult>> fun)
+        public async Task<TResult> Execute<TResult>(Func<string, SetTokenProcessor, CheckResponseProcessor, Task<TResult>> fun)
         {
             TResult result = default(TResult);
             for (int i = 0; i < 3; i++)
@@ -128,7 +131,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                         continue;
                     }
 
-                    result = await fun(accessToken, _tokenSetter);
+                    result = await fun(accessToken, _tokenSetter, _responseChecker);
                     break;
                 }
                 catch (UnauthorizedAccessException e)

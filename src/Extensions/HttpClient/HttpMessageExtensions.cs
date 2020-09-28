@@ -14,42 +14,75 @@ namespace System.Net.Http
         /// <typeparam name="TResponse">应答对象类型</typeparam>
         /// <param name="response">应答消息</param>
         /// <returns>应答对象</returns>
-        public static async Task<TResponse> GetObjectAsync<TResponse>(this HttpResponseMessage response)
+        public static async Task<TResponse> GetObjectAsync<TResponse>(this HttpResponseMessage response, bool copy = false)
         {
             if (response == null || response.Content == null)
             {
                 return default;
             }
 
+            Stream stream = null;
+            if (copy)
+            {
+                await response.Content.LoadIntoBufferAsync();
+            }
+
+            stream = await response.Content.ReadAsStreamAsync();
+
+
             if (typeof(TResponse) == typeof(string))
             {
-                return (TResponse)(object)(await response.Content.ReadAsStringAsync());
+                StreamReader sr = new StreamReader(stream);
+                var str = (TResponse)(object)(await sr.ReadToEndAsync());
+                stream.Position = 0;
+                return str;
             }
-            else if(typeof(TResponse) == typeof(HttpResponseMessage))
+            else if (typeof(TResponse) == typeof(HttpResponseMessage))
             {
                 // 如果类型为HttpResponseMessage直接返回
                 return (TResponse)(object)response;
             }
             else
             {
-                return await JsonHelper.ToObjectAsync<TResponse>(await response.Content.ReadAsStreamAsync());
+                var obj = await JsonHelper.ToObjectAsync<TResponse>(stream);
+                stream.Position = 0;
+                return obj;
             }
         }
 
-        public static async Task<TResponse> GetObjectAsync<TResponse>(this HttpRequestMessage request)
+        public static async Task<TResponse> GetObjectAsync<TResponse>(this HttpRequestMessage request, bool copy = false)
         {
             if (request == null || request.Content == null)
             {
                 return default;
             }
 
+            Stream stream = null;
+            if (copy)
+            {
+                await request.Content.LoadIntoBufferAsync();
+            }
+
+            stream = await request.Content.ReadAsStreamAsync();
+
+
             if (typeof(TResponse) == typeof(string))
             {
-                return (TResponse)(object)(await request.Content.ReadAsStringAsync());
+                StreamReader sr = new StreamReader(stream);
+                var str = (TResponse)(object)(await sr.ReadToEndAsync());
+                stream.Position = 0;
+                return str;
+            }
+            else if (typeof(TResponse) == typeof(HttpRequestMessage))
+            {
+                // 如果类型为HttpResponseMessage直接返回
+                return (TResponse)(object)request;
             }
             else
             {
-                return await JsonHelper.ToObjectAsync<TResponse>(await request.Content.ReadAsStreamAsync());
+                var obj = await JsonHelper.ToObjectAsync<TResponse>(stream);
+                stream.Position = 0;
+                return obj;
             }
         }
 
