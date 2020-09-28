@@ -18,17 +18,20 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
         {
             return _cache.GetOrAdd(queueName, (key) =>
             {
-                var options = _serviceProvider.GetService<IOptionsSnapshot<ParallelQueueProducerOptions<TEntity>>>();
-                if (options == null || options.Value == null)
+                using (var scope = _serviceProvider.CreateScope())
                 {
-                    throw new InvalidOperationException("未配置队列生产者");
+                    var options = scope.ServiceProvider.GetService<IOptionsSnapshot<ParallelQueueProducerOptions<TEntity>>>();
+                    if (options == null || options.Value == null)
+                    {
+                        throw new InvalidOperationException("未配置队列生产者");
+                    }
+                    var producer = options.Get(queueName).GetCreator();
+                    if (producer == null)
+                    {
+                        throw new InvalidOperationException($"未配置队列:{queueName}");
+                    }
+                    return producer(scope.ServiceProvider, queueName);
                 }
-                var producer = options.Get(queueName).GetCreator();
-                if (producer == null)
-                {
-                    throw new InvalidOperationException($"未配置队列:{queueName}");
-                }
-                return producer(_serviceProvider,queueName);
             }) as IParallelQueueProducer<TEntity>;
 
         }

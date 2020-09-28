@@ -74,19 +74,22 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
 
             var instance = _cache.GetOrAdd(cacheKey, (key, sp) =>
             {
-                var optionsManager = sp.GetRequiredService<IOptionsSnapshot<ParallelQueueConsumerOptions<TEntity, TState>>>();
-                var options = optionsManager.Get(name);
-                if (options.ExecuteDelegate == null)
+                using (var scope = sp.CreateScope())
                 {
-                    throw new InvalidOperationException("必须设置执行委托ExecuteDelegate");
+                    var optionsManager = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<ParallelQueueConsumerOptions<TEntity, TState>>>();
+                    var options = optionsManager.Get(name);
+                    if (options.ExecuteDelegate == null)
+                    {
+                        throw new InvalidOperationException("必须设置执行委托ExecuteDelegate");
+                    }
+                    DefaultParallelQueueConsumer<TEntity, TState> consumer = new DefaultParallelQueueConsumer<TEntity, TState>(
+                        options,
+                        name ?? "",
+                        state,
+                        _loggerFactory
+                        );
+                    return consumer;
                 }
-                DefaultParallelQueueConsumer<TEntity, TState> consumer = new DefaultParallelQueueConsumer<TEntity, TState>(
-                    options,
-                    name ?? "",
-                    state,
-                    _loggerFactory
-                    );
-                return consumer;
             }, _serviceProvider);
 
 
