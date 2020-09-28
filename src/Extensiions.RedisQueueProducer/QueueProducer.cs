@@ -171,6 +171,14 @@ namespace Extensiions.RedisQueueProducer
             _stoppingTokenSource = new CancellationTokenSource();
             _stopTokenSource.Cancel();
             _stoppingTokenSource.Token.WaitHandle.WaitOne(TimeSpan.FromSeconds(5));
+            // 清除队列
+            while (_readQueue.Count > 0)
+            {
+                var ci = _readQueue.Take();
+                ci.IsOk = false;
+                ci.cts.Cancel();
+            }
+
             return Task.CompletedTask;
         }
 
