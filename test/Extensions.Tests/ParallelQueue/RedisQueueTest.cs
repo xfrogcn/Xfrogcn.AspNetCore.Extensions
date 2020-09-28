@@ -19,18 +19,20 @@ namespace Extensions.Tests.ParallelQueue
         {
             IServiceCollection sc = new ServiceCollection()
                 .AddExtensions();
-
-            sc.AddParallelQueueProducer<string>("test", options =>
-            {
-                options.UseRedis(redis =>
+            string queueName = $"test_{StringExtensions.RandomString(4)}";
+            sc.AddParallelQueue<string>(queueName)
+                .ConfigProducer(options =>
                 {
-                    redis.Configuration = "localhost:6379";
+                    options.UseRedis(redis =>
+                    {
+                        redis.Configuration = "localhost:6379";
+                    });
                 });
-            });
+           
 
             var sp = sc.BuildServiceProvider();
             var factory = sp.GetRequiredService<IParallelQueueProducerFactory>();
-            var producer = factory.CreateProducer<string>("test");
+            var producer = factory.CreateProducer<string>(queueName);
             Stopwatch sw = new Stopwatch();
             sw.Start();
             var (s,b) = await  producer.TryTakeAsync(TimeSpan.FromSeconds(1), default);
@@ -55,7 +57,8 @@ namespace Extensions.Tests.ParallelQueue
                 .AddExtensions();
 
             string queueName = $"test_{StringExtensions.RandomString(4)}";
-            sc.AddParallelQueueProducer<string>(queueName, options =>
+            sc.AddParallelQueue<string>(queueName)
+                .ConfigProducer(options =>
             {
                 options.UseRedis(redis =>
                 {
@@ -106,7 +109,8 @@ namespace Extensions.Tests.ParallelQueue
                .AddExtensions();
 
             string queueName = $"test_{StringExtensions.RandomString(4)}";
-            sc.AddParallelQueueProducer<string>(queueName, options =>
+            sc.AddParallelQueue<string>(queueName)
+                .ConfigProducer(options =>
             {
                 options.UseRedis(redis =>
                 {
@@ -164,7 +168,8 @@ namespace Extensions.Tests.ParallelQueue
                .AddExtensions();
 
             string queueName = $"test_{StringExtensions.RandomString(4)}";
-            sc.AddParallelQueueProducer<string>(queueName, options =>
+            sc.AddParallelQueue<string>(queueName)
+                .ConfigProducer(options =>
             {
                 options.UseRedis(redis =>
                 {
