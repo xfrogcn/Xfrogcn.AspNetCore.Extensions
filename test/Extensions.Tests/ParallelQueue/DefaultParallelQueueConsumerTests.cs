@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -14,7 +15,11 @@ namespace Extensions.Tests.ParallelQueue
         [Fact(DisplayName = "默认处理器")]
         public async Task Test1()
         {
-            Func<string, string, string, Task> proc = async (entity, state, name) =>
+            IServiceCollection sc = new ServiceCollection()
+                .AddExtensions();
+            var sp = sc.BuildServiceProvider();
+
+            Func<IServiceProvider,string, string, string, Task> proc = async (sp, entity, state, name) =>
             {
                 await Task.Delay(100);
             };
@@ -27,6 +32,7 @@ namespace Extensions.Tests.ParallelQueue
                         ExecutorQueueCapacity = 1,
                         ExecuteDelegate = proc
                     },
+                    sp,
                     "test",
                     "state",
                     new Microsoft.Extensions.Logging.LoggerFactory()
@@ -59,7 +65,10 @@ namespace Extensions.Tests.ParallelQueue
         [Fact(DisplayName = "排队")]
         public async Task Test2()
         {
-            Func<string, string, string, Task> proc = async (entity, state, name) =>
+            IServiceCollection sc = new ServiceCollection()
+                .AddExtensions();
+            var sp = sc.BuildServiceProvider();
+            Func<IServiceProvider, string, string, string, Task> proc = async (sp, entity, state, name) =>
             {
                 await Task.Delay(1000);
             };
@@ -72,6 +81,7 @@ namespace Extensions.Tests.ParallelQueue
                         ExecutorQueueCapacity = 1,
                         ExecuteDelegate = proc
                     },
+                    sp,
                     "test",
                     "state",
                     new Microsoft.Extensions.Logging.LoggerFactory()
@@ -107,7 +117,11 @@ namespace Extensions.Tests.ParallelQueue
         [Fact(DisplayName = "排队-队列容量不为1")]
         public async Task Test3()
         {
-            Func<string, string, string, Task> proc = async (entity, state, name) =>
+            IServiceCollection sc = new ServiceCollection()
+                .AddExtensions();
+            var sp = sc.BuildServiceProvider();
+
+            Func<IServiceProvider, string, string, string, Task> proc = async (sp, entity, state, name) =>
             {
                 await Task.Delay(1000);
             };
@@ -120,6 +134,7 @@ namespace Extensions.Tests.ParallelQueue
                         ExecutorQueueCapacity = 2,
                         ExecuteDelegate = proc
                     },
+                    sp,
                     "test",
                     "state",
                     new Microsoft.Extensions.Logging.LoggerFactory()
@@ -155,10 +170,15 @@ namespace Extensions.Tests.ParallelQueue
         [Fact(DisplayName = "排队-多执行器，多容量")]
         public async Task Test4()
         {
-            Func<string, string, string, Task> proc = async (entity, state, name) =>
+            IServiceCollection sc = new ServiceCollection()
+               .AddExtensions();
+            var sp = sc.BuildServiceProvider();
+
+            Func<IServiceProvider, string, string, string, Task> proc = async (sp, entity, state, name) =>
             {
                 await Task.Delay(1000);
             };
+           
 
             DefaultParallelQueueConsumer<string, string> consumer
                 = new DefaultParallelQueueConsumer<string, string>(
@@ -168,6 +188,7 @@ namespace Extensions.Tests.ParallelQueue
                         ExecutorQueueCapacity = 2,
                         ExecuteDelegate = proc
                     },
+                    sp,
                     "test",
                     "state",
                     new Microsoft.Extensions.Logging.LoggerFactory()

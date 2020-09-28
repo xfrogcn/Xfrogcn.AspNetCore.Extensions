@@ -12,35 +12,35 @@ namespace Extensions.Tests.ParallelQueue
         [Fact(DisplayName = "默认TState")]
         public void DefaultState()
         {
-            Func<string, object, string, Task> proc1 = async (entity, state, name) =>
+            Func<IServiceProvider, string, object, string, Task> proc1 = async (sp, entity, state, name) =>
               {
                   await Task.Delay(100);
               };
-            Func<string, object, string, Task> testProc1 = async (entity, state, name) =>
+            Func<IServiceProvider, string, object, string, Task> testProc1 = async (sp, entity, state, name) =>
             {
                 await Task.Delay(100);
             };
-            Func<int, object, string, Task> proc2 = async (entity, state, name) =>
+            Func<IServiceProvider, int, object, string, Task> proc2 = async (sp, entity, state, name) =>
             {
                 await Task.Delay(100);
             };
             IServiceCollection sc = new ServiceCollection()
                 .AddLogging();
 
-            sc.AddParallelQueueConsumer<string>(proc1);
-            sc.AddParallelQueueConsumer<string>("test", testProc1);
-            sc.AddParallelQueueConsumer<string>("test", options =>
+            sc.AddParallelQueue<string>().ConfigConsumer(proc1);
+            sc.AddParallelQueue<string>("test").ConfigConsumer(testProc1);
+            sc.AddParallelQueue<string>("test").ConfigConsumer(options =>
             {
                 options.ExecutorQueueCapacity = 10;
                 options.ExecutorCount = 10;
             });
-            sc.AddParallelQueueConsumer<string>("test2", 10, 10, proc1);
-            sc.AddParallelQueueConsumer<string>("test2", options =>
+            sc.AddParallelQueue<string>("test2").ConfigConsumer(10, 10, proc1);
+            sc.AddParallelQueue<string>("test2").ConfigConsumer(options =>
             {
                     // 覆盖
                     options.ExecutorCount = 8;
             });
-            sc.AddParallelQueueConsumer<int>(proc2);
+            sc.AddParallelQueue<int>().ConfigConsumer(proc2);
 
             var sp = sc.BuildServiceProvider();
 
@@ -73,39 +73,39 @@ namespace Extensions.Tests.ParallelQueue
         [Fact(DisplayName = "正常")]
         public void Normal()
         {
-            Func<string, string, string, Task> proc1 = async (entity, state, name) =>
+            Func<IServiceProvider, string, string, string, Task> proc1 = async (sp, entity, state, name) =>
             {
                 await Task.Delay(100);
             };
-            Func<string, string, string, Task> testProc1 = async (entity, state, name) =>
+            Func<IServiceProvider, string, string, string, Task> testProc1 = async (sp, entity, state, name) =>
             {
                 await Task.Delay(100);
             };
-            Func<int, string, string, Task> proc2 = async (entity, state, name) =>
+            Func<IServiceProvider, int, string, string, Task> proc2 = async (sp, entity, state, name) =>
             {
                 await Task.Delay(100);
             };
             IServiceCollection sc = new ServiceCollection()
                 .AddLogging();
 
-            sc.AddParallelQueueConsumer(6, 6, proc1);
-            sc.AddParallelQueueConsumer<string, string>(options =>
+            sc.AddParallelQueue<string,string>().ConfigConsumer(6, 6, proc1);
+            sc.AddParallelQueue<string, string>().ConfigConsumer(options =>
                 {
                     options.ExecutorCount = 7;
                 });
-            sc.AddParallelQueueConsumer("test", testProc1);
-            sc.AddParallelQueueConsumer<string, string>("test", options =>
+            sc.AddParallelQueue<string,string>("test").ConfigConsumer(testProc1);
+            sc.AddParallelQueue<string, string>("test").ConfigConsumer(options =>
             {
                 options.ExecutorQueueCapacity = 10;
                 options.ExecutorCount = 10;
             });
-            sc.AddParallelQueueConsumer("test2", 10, 10, proc1);
-            sc.AddParallelQueueConsumer<string, string>("test2", options =>
+            sc.AddParallelQueue<string,string>("test2").ConfigConsumer(10, 10, proc1);
+            sc.AddParallelQueue<string, string>("test2").ConfigConsumer(options =>
             {
                     // 覆盖
                     options.ExecutorCount = 8;
             });
-            sc.AddParallelQueueConsumer(proc2);
+            sc.AddParallelQueue<int,string>().ConfigConsumer(proc2);
 
             var sp = sc.BuildServiceProvider();
 
@@ -137,7 +137,7 @@ namespace Extensions.Tests.ParallelQueue
         [Fact(DisplayName = "未配置")]
         public void Invalid()
         {
-            Func<string, string, string, Task> proc1 = async (entity, state, name) =>
+            Func<IServiceProvider, string, string, string, Task> proc1 = async (sp, entity, state, name) =>
             {
                 await Task.Delay(100);
             };
@@ -145,7 +145,7 @@ namespace Extensions.Tests.ParallelQueue
             IServiceCollection sc = new ServiceCollection()
                 .AddLogging();
 
-            sc.AddParallelQueueConsumer(proc1);
+            sc.AddParallelQueue<string,string>().ConfigConsumer(proc1);
 
 
             var sp = sc.BuildServiceProvider();

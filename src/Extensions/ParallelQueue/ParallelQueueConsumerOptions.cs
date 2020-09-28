@@ -31,7 +31,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
         /// <summary>
         /// 处理委托
         /// </summary>
-        public Func<TEntity, TState, string, Task> ExecuteDelegate { get; set; }
+        public Func<IServiceProvider, TEntity, TState, string, Task> ExecuteDelegate { get; set; }
 
         /// <summary>
         /// 统计周期

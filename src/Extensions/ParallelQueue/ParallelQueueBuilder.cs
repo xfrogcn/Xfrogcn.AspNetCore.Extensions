@@ -29,7 +29,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
             return this;
         }
 
-        public ParallelQueueBuilder<TEntity, TState> ConfigConsumer(Func<TEntity, TState, string, Task> executeDelegate)
+        public ParallelQueueBuilder<TEntity, TState> ConfigConsumer(Func<IServiceProvider, TEntity, TState, string, Task> executeDelegate)
         {
             if (executeDelegate != null)
             {
@@ -41,7 +41,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
             return this;
         }
 
-        public ParallelQueueBuilder<TEntity, TState> ConfigConsumer(int quequCapacity, int executorCount, Func<TEntity, TState, string, Task> executeDelegate)
+        public ParallelQueueBuilder<TEntity, TState> ConfigConsumer(int quequCapacity, int executorCount, Func<IServiceProvider, TEntity, TState, string, Task> executeDelegate)
         {
             if (executeDelegate != null)
             {

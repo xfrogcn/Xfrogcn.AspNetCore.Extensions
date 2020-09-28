@@ -84,6 +84,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
                     }
                     DefaultParallelQueueConsumer<TEntity, TState> consumer = new DefaultParallelQueueConsumer<TEntity, TState>(
                         options,
+                         _serviceProvider,
                         name ?? "",
                         state,
                         _loggerFactory

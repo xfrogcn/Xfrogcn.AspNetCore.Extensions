@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
@@ -46,8 +47,10 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
         }
 
         ILogger<ParallelQueueExecutor<TEntity,TState>> _logger = null;
+        IServiceProvider _serviceProvider;
 
         public ParallelQueueExecutor(
+            IServiceProvider serviceProvider,
             ParallelQueueConsumerOptions<TEntity, TState> options,
             ILogger<ParallelQueueExecutor<TEntity, TState>> logger,
             string name,
@@ -65,6 +68,12 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
             {
                 throw new ArgumentNullException(nameof(options.ExecuteDelegate));
             }
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            _serviceProvider = serviceProvider;
 
             int capacity = options.ExecutorQueueCapacity;
             if (capacity <= 0)
@@ -157,7 +166,10 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
                 DateTime begin = DateTime.UtcNow;
                 try
                 {
-                    await Options.ExecuteDelegate(item, State, Name);
+                    using (var scope = _serviceProvider.CreateScope())
+                    {
+                        await Options.ExecuteDelegate(scope.ServiceProvider, item, State, Name);
+                    }
                 }
                 catch (Exception e)
                 {

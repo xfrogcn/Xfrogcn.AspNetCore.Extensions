@@ -25,6 +25,8 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
 
         private readonly BlockingCollection<TEntity>[] _queueList;
 
+        private readonly IServiceProvider _serviceProvider;
+
         private List<Task> _taskList = new List<Task>();
 
         private bool _isStarting = false;
@@ -33,6 +35,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
 
         public DefaultParallelQueueConsumer(
             ParallelQueueConsumerOptions<TEntity, TState> options,
+            IServiceProvider serviceProvider,
             string namePrefix,
             TState state,
             ILoggerFactory loggerFactory)
@@ -43,6 +46,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
             }
             _options = options;
             _loggerFactory = loggerFactory;
+            _serviceProvider = serviceProvider;
             _namePrefix = namePrefix;
             _state = state;
 
@@ -59,6 +63,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
             {
                 string name = $"{namePrefix}{i}";
                 var executor = new ParallelQueueExecutor<TEntity, TState>(
+                    _serviceProvider,
                     _options,
                     _logger,
                     name,
