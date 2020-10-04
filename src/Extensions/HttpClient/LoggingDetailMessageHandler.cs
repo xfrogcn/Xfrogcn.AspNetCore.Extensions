@@ -28,10 +28,10 @@ namespace Xfrogcn.AspNetCore.Extensions
 
         private bool isTextContent(string mediaType)
         {
-            if(mediaType.Contains("json") ||
+            if(!string.IsNullOrEmpty(mediaType) && (mediaType.Contains("json") ||
                 mediaType.Contains("xml") ||
                 mediaType.Contains("html") ||
-                mediaType.Contains("text")
+                mediaType.Contains("text"))
                 )
             {
                 return true;
@@ -48,13 +48,12 @@ namespace Xfrogcn.AspNetCore.Extensions
             {
                 if (request.Method != HttpMethod.Get && request.Content != null)
                 {
-                    if (isTextContent(request.Content.Headers.ContentType.MediaType))
+                    if (isTextContent(request.Content.Headers?.ContentType?.MediaType))
                     {
                         requestContent = await request.Content.ReadAsStringAsync();
                     }
                     else
                     {
-                        requestContent = await request.Content.ReadAsStringAsync();
                         requestContent = $"stream content, length: {request.Content.Headers.ContentLength}";
                     }
                 }
@@ -69,7 +68,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                 var response = await base.SendAsync(request, cancellationToken);
 
                 string responseContent = string.Empty;
-                if (response.Content != null && isTextContent(response.Content.Headers.ContentType.MediaType) && response.Content.Headers.ContentLength<=(1024*1024*5))
+                if (response.Content != null && isTextContent(response.Content.Headers?.ContentType?.MediaType) && response.Content.Headers.ContentLength<=(1024*1024*5))
                 {
                     responseContent = await response.Content.ReadAsStringAsync();
                 }
