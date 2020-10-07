@@ -28,7 +28,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                 catch (System.Exception e)
                 {
                     _logger.LogWarning($"执行失败，自动重试, {i}， 异常：\r\n{e.ToString()}");
-                    if (i == retryCount)
+                    if (i == (retryCount-1))
                     {
                         if (throwError)
                             throw;
@@ -68,7 +68,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                 catch (System.Exception e)
                 {
                     _logger.LogWarning($"执行失败，自动重试, {i}， 异常：\r\n{e.ToString()}");
-                    if (i == retryCount)
+                    if (i == (retryCount - 1))
                     {
                         if (throwError)
                             throw;
