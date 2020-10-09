@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Hosting
                     }
                    // logPath = logPath.TrimEnd(System.IO.Path.DirectorySeparatorChar) + System.IO.Path.DirectorySeparatorChar +  "{Date}/logs.txt";
                     ArchiveHooks archiveHooks = new ArchiveHooks(CompressionLevel.Fastest);
-                    string template = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}Scopes:{NewLine}{Properties}{NewLine}{Exception}";
+                    string template = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{NewLine}{Exception}";
                     loggerConfiguration = loggerConfiguration
                         .WriteTo.Map("SourceContext", (sc, lc) => {
                             lc.File(
