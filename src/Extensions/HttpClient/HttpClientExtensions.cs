@@ -168,6 +168,7 @@ namespace System.Net.Http
 
             var content = new MultipartFormDataContent(boundary);
             content.Headers.ContentType = new MediaTypeHeaderValue("multipart/form-data");
+            content.Headers.ContentType.Parameters.Add(new NameValueHeaderValue("boundary", boundary));
             if (formData != null)
             {
                 foreach (var kv in formData)
