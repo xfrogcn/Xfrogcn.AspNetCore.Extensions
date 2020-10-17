@@ -11,6 +11,8 @@ namespace Xfrogcn.AspNetCore.Extensions
             _serviceProvider = serviceProvider;
         }
 
+        public IServiceProvider ServiceProvider => _serviceProvider;
+
         public IMapper<TSource, TTarget> GetMapper<TSource, TTarget>()
         {
             return _serviceProvider.GetRequiredService<IMapper<TSource, TTarget>>();
