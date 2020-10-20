@@ -12,4 +12,8 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
             return Task.CompletedTask;
         }
     }
+
+    public class QueueHandlerBase<TEntity> : QueueHandlerBase<TEntity, object>
+    {
+    }
 }
