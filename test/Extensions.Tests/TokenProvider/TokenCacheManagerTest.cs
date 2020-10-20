@@ -45,10 +45,12 @@ namespace Extensions.Tests.TokenProvider
             };
             MockTokenProcessor processor = new MockTokenProcessor();
             SetTokenProcessor setter = SetTokenProcessor.Bearer;
+            CheckResponseProcessor checker = CheckResponseProcessor.NormalChecker;
             MemoryTokenCacheManager cacheManager = new MemoryTokenCacheManager(ci.ClientID);
             ClientCertificateManager ccm = new ClientCertificateManager(
                 ci, processor,
                 setter,
+                checker,
                 cacheManager,
                 sp.GetRequiredService<ILogger<ClientCertificateManager>>(),
                 sp.GetRequiredService<IHttpClientFactory>());
@@ -105,12 +107,14 @@ namespace Extensions.Tests.TokenProvider
                 ClientSecret = "1"
             };
             MockTokenProcessor processor = new MockTokenProcessor();
+            CheckResponseProcessor checker = CheckResponseProcessor.NormalChecker;
             DistributedTokenCacheManager cacheManager = new DistributedTokenCacheManager(
                 sp.GetRequiredService<IDistributedCache>(),
                 ci.ClientID);
             ClientCertificateManager ccm = new ClientCertificateManager(
                 ci, processor,
                 SetTokenProcessor.Bearer,
+                checker,
                 cacheManager,
                 sp.GetRequiredService<ILogger<ClientCertificateManager>>(),
                 sp.GetRequiredService<IHttpClientFactory>());

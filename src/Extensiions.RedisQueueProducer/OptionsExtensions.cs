@@ -1,10 +1,6 @@
-﻿using Extensiions.RedisQueueProducer;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
+﻿using Extensions.RedisQueueProducer;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using Xfrogcn.AspNetCore.Extensiions;
+using Xfrogcn.AspNetCore.Extensions;
 using Xfrogcn.AspNetCore.Extensions.ParallelQueue;
 
 namespace Microsoft.Extensions.DependencyInjection

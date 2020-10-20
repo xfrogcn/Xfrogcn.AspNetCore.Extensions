@@ -1,16 +1,14 @@
 ﻿using StackExchange.Redis;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Threading.Tasks;
-using Xfrogcn.AspNetCore.Extensiions;
 using Xfrogcn.AspNetCore.Extensions;
 using Xfrogcn.AspNetCore.Extensions.ParallelQueue;
 
-namespace Extensiions.RedisQueueProducer
+namespace Extensions.RedisQueueProducer
 {
     public class QueueProducer<TEntity> : IParallelQueueProducer<TEntity>
     {
