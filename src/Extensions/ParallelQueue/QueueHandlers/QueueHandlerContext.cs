@@ -13,6 +13,8 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
 
         public string QueueName { get; internal set; }
 
+        public IServiceProvider ServiceProvider { get; internal set; }
+
         public bool Stoped { get; internal set; } = false;
 
         private Dictionary<string, object> _parameters = new Dictionary<string, object>();

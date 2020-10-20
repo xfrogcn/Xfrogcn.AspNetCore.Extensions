@@ -49,6 +49,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
                     {
                         using(var scope = _serviceProvider.CreateScope())
                         {
+                            context.ServiceProvider = scope.ServiceProvider;
                             var handler = scope.ServiceProvider.GetRequiredService(h.GetType()) as IQueueHandler<TEntity, TState>;
                             await handler.Process(context);
                         }
