@@ -53,6 +53,30 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
             return this;
         }
 
+        /// <summary>
+        /// 采用Handler模式处理消息队列
+        /// </summary>
+        /// <param name="quequCapacity"></param>
+        /// <param name="executorCount"></param>
+        /// <returns></returns>
+        public ParallelQueueBuilder<TEntity, TState> ConfigConsumerHandler(int quequCapacity, int executorCount, Func<Exception, TEntity, TState, string, Task> errorHandler = null)
+        {
+            Services.AddScoped<QueueProcessor<TEntity, TState>>();
+            return ConfigConsumer(quequCapacity, executorCount, (sp, msg, state, name) =>
+            {
+                QueueProcessor<TEntity, TState> processor = sp.GetRequiredService<QueueProcessor<TEntity, TState>>();
+                return processor.Process(msg, state, name, errorHandler);
+            });
+        }
+
+        public ParallelQueueBuilder<TEntity, TState> AddConsumerHandler<THandler>()
+            where THandler : class, IQueueHandler<TEntity,TState>
+        {
+            Services.TryAddEnumerable(ServiceDescriptor.Scoped<IQueueHandler<TEntity, TState>, THandler>());
+            Services.TryAddScoped<THandler>();
+            return this;
+        }
+
         public ParallelQueueBuilder<TEntity,TState> ConfigProducer(Action<ParallelQueueProducerOptions<TEntity>> configAction)
         {
             if (configAction != null)
