@@ -1,9 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
@@ -61,6 +59,18 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
             {
                 Services.Configure<ParallelQueueProducerOptions<TEntity>>(Name, configAction);
             }
+            return this;
+        }
+
+        public ParallelQueueBuilder<TEntity, TState> AddHostedService(TState state = default)
+        {
+            Services.TryAddSingleton<ParallelQueueHostedService<TEntity, TState>>(sp =>
+            {
+                IParallelQueueConsumerFactory consumerFactory = sp.GetRequiredService<IParallelQueueConsumerFactory>();
+                IParallelQueueProducerFactory producerFactory = sp.GetRequiredService<IParallelQueueProducerFactory>();
+                ILogger<ParallelQueueHostedService<TEntity, TState>> logger = sp.GetRequiredService<ILogger<ParallelQueueHostedService<TEntity, TState>>>();
+                return new ParallelQueueHostedService<TEntity, TState>(consumerFactory, producerFactory, Name, state, logger);
+            });
             return this;
         }
     }

@@ -125,28 +125,29 @@ namespace Xfrogcn.AspNetCore.Extensions
                         await tempResponseBodyStream.CopyToAsync(bodyStream);
                     }
                 }
-                else if (context.Response.ContentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                        || context.Response.ContentType == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        || context.Response.ContentType == "application/vnd.ms-excel"
-                        || context.Response.ContentType == "application/msword")
+                //else if (context.Response.ContentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                //        || context.Response.ContentType == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                //        || context.Response.ContentType == "application/vnd.ms-excel"
+                //        || context.Response.ContentType == "application/msword")
+                else
                 {
                     tempResponseBodyStream.Seek(0, SeekOrigin.Begin);
                     await tempResponseBodyStream.CopyToAsync(bodyStream);
                 }
-                else
-                {
-                    var buffer = tempResponseBodyStream.GetBuffer();
-                    var len = buffer.Length;
-                    if (len > 0)
-                    {
-                        var contentLen = len - 1;
-                        for (; contentLen >= 0; contentLen--)
-                        {
-                            if (buffer[contentLen] > 0) break;
-                        }
-                        await bodyStream.WriteAsync(buffer, 0, contentLen + 1);
-                    }
-                }
+                //else
+                //{
+                //    var buffer = tempResponseBodyStream.GetBuffer();
+                //    var len = buffer.Length;
+                //    if (len > 0)
+                //    {
+                //        var contentLen = len - 1;
+                //        for (; contentLen >= 0; contentLen--)
+                //        {
+                //            if (buffer[contentLen] > 0) break;
+                //        }
+                //        await bodyStream.WriteAsync(buffer, 0, contentLen + 1);
+                //    }
+                //}
             }
 
             sw.Stop();
