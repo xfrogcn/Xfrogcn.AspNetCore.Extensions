@@ -59,7 +59,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
         /// <param name="quequCapacity"></param>
         /// <param name="executorCount"></param>
         /// <returns></returns>
-        public ParallelQueueBuilder<TEntity, TState> ConfigConsumerHandler(int quequCapacity, int executorCount, Func<Exception, TEntity, TState, string, Task> errorHandler = null)
+        public ParallelQueueBuilder<TEntity, TState> ConfigConsumerHandler(int quequCapacity, int executorCount, Func<IServiceProvider, Exception, TEntity, TState, string, Task> errorHandler = null)
         {
             Services.AddScoped<QueueProcessor<TEntity, TState>>();
             return ConfigConsumer(quequCapacity, executorCount, (sp, msg, state, name) =>

@@ -32,7 +32,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
             _retry = retry;
         }
 
-        public virtual async Task Process(TEntity msg, TState state, string name, Func<Exception,TEntity, TState, string, Task> errorHandler )
+        public virtual async Task Process(TEntity msg, TState state, string name, Func<IServiceProvider, Exception,TEntity, TState, string, Task> errorHandler )
         {
             var list = _handlers.Values.ToList();
             foreach(var h in list)
@@ -56,7 +56,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
                     {
                         using (var scope = _serviceProvider.CreateScope())
                         {
-                            await errorHandler(e, msg, state, name);
+                            await errorHandler(_serviceProvider, e, msg, state, name);
                         }
                     }
                 }
