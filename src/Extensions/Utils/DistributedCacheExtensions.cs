@@ -16,25 +16,39 @@ namespace Microsoft.Extensions.Caching.Distributed
                 return default(TEntity);
             }
 
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream(bytes);
-            return (TEntity)bf.Deserialize(ms);
+
+            return (TEntity)bytes.GetEntity();
         }
+
+ 
 
         public static async Task SetAsync<TEntity>(this IDistributedCache cache, string key, TEntity obj, CancellationToken cancellationToken = default)
         {
+            byte[] bytes = obj.GetBytes();
+
+            await cache.SetAsync(key, bytes, cancellationToken);
+        }
+
+        public static object GetEntity(this byte[] bytes)
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream(bytes);
+            return bf.Deserialize(ms);
+        }
+
+        public static byte[] GetBytes(this object entity)
+        {
             byte[] bytes = new byte[0];
-            if(obj != null)
+            if (entity != null)
             {
                 BinaryFormatter bf = new BinaryFormatter();
                 MemoryStream ms = new MemoryStream();
-                bf.Serialize(ms, obj);
+                bf.Serialize(ms, entity);
                 ms.Position = 0;
                 BinaryReader br = new BinaryReader(ms);
                 bytes = br.ReadBytes((int)ms.Length);
             }
-
-            await cache.SetAsync(key, bytes, cancellationToken);
+            return bytes;
         }
     }
 }
