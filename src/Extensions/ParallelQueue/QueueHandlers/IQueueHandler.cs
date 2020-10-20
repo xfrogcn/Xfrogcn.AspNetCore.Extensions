@@ -2,10 +2,10 @@
 
 namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
 {
-    public interface IQueueHandler<TEentity, TState>
+    public interface IQueueHandler<TEntity, TState>
     {
         int Order { get; }
 
-        Task Process(TEentity msg, TState state, string name);
+        Task Process(QueueHandlerContext<TEntity, TState> context);
     }
 }

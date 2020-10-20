@@ -7,7 +7,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
         public virtual int Order => 100;
 
 
-        public virtual Task Process(TEntity msg, TState state, string name)
+        public virtual Task Process(QueueHandlerContext<TEntity, TState> context)
         {
             return Task.CompletedTask;
         }

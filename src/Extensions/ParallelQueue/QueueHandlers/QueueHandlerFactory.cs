@@ -35,6 +35,12 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
         public virtual async Task Process(TEntity msg, TState state, string name, Func<IServiceProvider, Exception,TEntity, TState, string, Task> errorHandler )
         {
             var list = _handlers.Values.ToList();
+            QueueHandlerContext<TEntity, TState> context = new QueueHandlerContext<TEntity, TState>()
+            {
+                QueueName = name,
+                Message = msg,
+                State = state
+            };
             foreach(var h in list)
             {
                 try
@@ -44,7 +50,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
                         using(var scope = _serviceProvider.CreateScope())
                         {
                             var handler = scope.ServiceProvider.GetRequiredService(h.GetType()) as IQueueHandler<TEntity, TState>;
-                            await handler.Process(msg, state, name);
+                            await handler.Process(context);
                         }
 
                     }, 3, 100, true);
@@ -59,6 +65,11 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
                             await errorHandler(_serviceProvider, e, msg, state, name);
                         }
                     }
+                }
+
+                if (context.Stoped)
+                {
+                    break;
                 }
                 
             }
