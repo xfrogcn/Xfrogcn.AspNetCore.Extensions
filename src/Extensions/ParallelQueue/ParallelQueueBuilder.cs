@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
@@ -62,6 +63,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
         public ParallelQueueBuilder<TEntity, TState> ConfigConsumerHandler(int quequCapacity, int executorCount, Func<IServiceProvider, Exception, TEntity, TState, string, Task> errorHandler = null)
         {
             Services.AddScoped<QueueProcessor<TEntity, TState>>();
+            Services.AddScoped<QueueHandlerFactory<TEntity, TState>>();
             return ConfigConsumer(quequCapacity, executorCount, (sp, msg, state, name) =>
             {
                 QueueProcessor<TEntity, TState> processor = sp.GetRequiredService<QueueProcessor<TEntity, TState>>();
@@ -86,15 +88,30 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
             return this;
         }
 
+        class HostedService : ParallelQueueHostedService<TEntity, TState>
+        {
+            public HostedService(
+                IParallelQueueConsumerFactory consumerFactory,
+                IParallelQueueProducerFactory producerFactory,
+                string name,
+                TState state,
+                ILogger<ParallelQueueHostedService<TEntity, TState>> logger)
+                : base(consumerFactory, producerFactory, name, state, logger)
+            {
+
+            }
+        }
+
         public ParallelQueueBuilder<TEntity, TState> AddHostedService(TState state = default)
         {
-            Services.TryAddSingleton<ParallelQueueHostedService<TEntity, TState>>(sp =>
+            Services.AddSingleton<IHostedService, HostedService>(sp =>
             {
                 IParallelQueueConsumerFactory consumerFactory = sp.GetRequiredService<IParallelQueueConsumerFactory>();
                 IParallelQueueProducerFactory producerFactory = sp.GetRequiredService<IParallelQueueProducerFactory>();
                 ILogger<ParallelQueueHostedService<TEntity, TState>> logger = sp.GetRequiredService<ILogger<ParallelQueueHostedService<TEntity, TState>>>();
-                return new ParallelQueueHostedService<TEntity, TState>(consumerFactory, producerFactory, Name, state, logger);
+                return new HostedService(consumerFactory, producerFactory, Name, state, logger);
             });
+
             return this;
         }
     }
