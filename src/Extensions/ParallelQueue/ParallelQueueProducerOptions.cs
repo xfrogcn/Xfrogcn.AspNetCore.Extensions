@@ -7,9 +7,6 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
 {
     public class ParallelQueueProducerOptions<TEntity>
     {
-       // public IServiceCollection Services { get; set; }
-
-       // public string Name { get; internal set; }
    
         Func<IServiceProvider, string, IParallelQueueProducer<TEntity>> _creator;
         public void SetProducer(Func<IServiceProvider, string, IParallelQueueProducer<TEntity>> creator)

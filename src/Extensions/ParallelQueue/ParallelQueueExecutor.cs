@@ -151,6 +151,8 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
                 timeOut = TimeSpan.FromSeconds(1);
             }
 
+            _logger.LogInformation($"队列消费者已启动：{Name}");
+
             while (!Queue.IsCompleted)
             {
                 // 从队列中获取
@@ -194,7 +196,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
                 _periodCounter++;
             }
 
-
+            _logger.LogInformation($"队列消费者已停止：{Name}");
         }
 
 

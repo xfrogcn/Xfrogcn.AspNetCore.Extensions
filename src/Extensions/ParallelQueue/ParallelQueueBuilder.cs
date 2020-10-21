@@ -17,6 +17,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
         {
             Name = name;
             Services = serviceDescriptors;
+
         }
 
         public ParallelQueueBuilder<TEntity,TState> ConfigConsumer(Action<ParallelQueueConsumerOptions<TEntity, TState>> configAction)

@@ -64,6 +64,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
         private CancellationTokenSource _stoppingToken = null;
         public async Task QueueReciver()
         {
+            _logger.LogInformation($"队列接收器已启动:{_queueName}");
             while (!_stopToken.IsCancellationRequested)
             {
                 var (msg, isOk) = await _producer.TryTakeAsync(TimeSpan.FromSeconds(5), _stopToken.Token);
@@ -79,7 +80,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
                     }
                 }
             }
-
+            _logger.LogInformation($"队列接收器已退出:{_queueName}");
             _stoppingToken.Cancel();
         }
 
