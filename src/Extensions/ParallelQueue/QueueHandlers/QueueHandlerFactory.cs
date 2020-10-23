@@ -9,7 +9,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
 {
     public class QueueHandlerFactory<TEntity, TState>
     {
-        readonly SortedList<int, IQueueHandler<TEntity, TState>> _handlers = new SortedList<int, IQueueHandler<TEntity, TState>>();
+        readonly List<IQueueHandler<TEntity, TState>> _handlers = new List<IQueueHandler<TEntity, TState>>();
         readonly IServiceProvider _serviceProvider;
         readonly ILogger<QueueHandlerFactory<TEntity, TState>> _logger;
         readonly IAutoRetry _retry;
@@ -22,10 +22,8 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
         {
             if (handlers != null)
             {
-                foreach(var h in handlers)
-                {
-                    _handlers.Add(h.Order, h);
-                }
+                var list = handlers.ToList().OrderBy(h => h.Order);
+                _handlers.AddRange(list);
             }
             _serviceProvider = serviceProvider;
             _logger = logger;
@@ -34,7 +32,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
 
         public virtual async Task Process(TEntity msg, TState state, string name, Func<IServiceProvider, Exception,TEntity, TState, string, Task> errorHandler )
         {
-            var list = _handlers.Values.ToList();
+            var list = _handlers.ToList();
             QueueHandlerContext<TEntity, TState> context = new QueueHandlerContext<TEntity, TState>()
             {
                 QueueName = name,

@@ -23,22 +23,26 @@ namespace Xfrogcn.AspNetCore.Extensions
             {
                 return await base.SendAsync(request, cancellationToken);
             }
-            var response = await _tokenManager.Execute<HttpResponseMessage>(async (token, setter, checker) =>
-           {
-               //request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            HttpResponseMessage lastResponse = null;
+            try
+            {
+                var response = await _tokenManager.Execute<HttpResponseMessage>(async (token, setter, checker) =>
+               {
+                   //request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-               await setter.SetTokenAsync(request, token);
-               var response = await base.SendAsync(request, cancellationToken);
-               await checker.CheckResponseAsync(response);
-               //if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
-               //        response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-               //{
-               //    throw new UnauthorizedAccessException("验证失败");
-               //}
-               return response;
-           });
+                   await setter.SetTokenAsync(request, token);
+                   var response = await base.SendAsync(request, cancellationToken);
+                   lastResponse = response;
+                   await checker.CheckResponseAsync(response);
+                   return response;
+               });
+            }
+            catch
+            {
 
-            return response;
+            }
+
+            return lastResponse;
         }
     }
 }
