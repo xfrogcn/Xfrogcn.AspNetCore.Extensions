@@ -95,22 +95,23 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
                 IParallelQueueConsumerFactory consumerFactory,
                 IParallelQueueProducerFactory producerFactory,
                 string name,
+                int timeout,
                 TState state,
                 ILogger<ParallelQueueHostedService<TEntity, TState>> logger)
-                : base(consumerFactory, producerFactory, name, state, logger)
+                : base(consumerFactory, producerFactory, name, timeout, state, logger)
             {
 
             }
         }
 
-        public ParallelQueueBuilder<TEntity, TState> AddHostedService(TState state = default)
+        public ParallelQueueBuilder<TEntity, TState> AddHostedService(int timeout = 5, TState state = default)
         {
             Services.AddSingleton<IHostedService, HostedService>(sp =>
             {
                 IParallelQueueConsumerFactory consumerFactory = sp.GetRequiredService<IParallelQueueConsumerFactory>();
                 IParallelQueueProducerFactory producerFactory = sp.GetRequiredService<IParallelQueueProducerFactory>();
                 ILogger<ParallelQueueHostedService<TEntity, TState>> logger = sp.GetRequiredService<ILogger<ParallelQueueHostedService<TEntity, TState>>>();
-                return new HostedService(consumerFactory, producerFactory, Name, state, logger);
+                return new HostedService(consumerFactory, producerFactory, Name, timeout, state, logger);
             });
 
             return this;

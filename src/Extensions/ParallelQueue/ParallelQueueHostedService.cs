@@ -15,6 +15,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
         private readonly ILogger<ParallelQueueHostedService<TEntity, TState>> _logger;
         private readonly string _queueName;
         private readonly TState _state;
+        private readonly int _timeout;
 
         private IParallelQueueConsumer<TEntity, TState> _consumer;
         private IParallelQueueProducer<TEntity> _producer;
@@ -24,6 +25,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
             IParallelQueueConsumerFactory consumerFactory,
             IParallelQueueProducerFactory producerFactory,
             string queuqName,
+            int timeout,
             TState state,
             ILogger<ParallelQueueHostedService<TEntity, TState>> logger)
         {
@@ -37,6 +39,7 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
             _consumerFactory = consumerFactory;
             _producerFactory = producerFactory;
             _queueName = queuqName;
+            _timeout = timeout;
             _state = state;
             _logger = logger;
         }
@@ -67,12 +70,12 @@ namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
             _logger.LogInformation($"队列接收器已启动:{_queueName}");
             while (!_stopToken.IsCancellationRequested)
             {
-                var (msg, isOk) = await _producer.TryTakeAsync(TimeSpan.FromSeconds(5), _stopToken.Token);
+                var (msg, isOk) = await _producer.TryTakeAsync(TimeSpan.FromSeconds(_timeout), _stopToken.Token);
                 if (msg != null && isOk)
                 {
                     while (true)
                     {
-                        var isAdded = _consumer.TryAdd(msg, TimeSpan.FromSeconds(10));
+                        var isAdded = _consumer.TryAdd(msg, TimeSpan.FromSeconds(_timeout));
                         if (isAdded)
                         {
                             break;
