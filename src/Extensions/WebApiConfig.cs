@@ -26,6 +26,8 @@ namespace Xfrogcn.AspNetCore.Extensions
         /// </summary>
         public LogEventLevel? RequestLogLevel { get; set; }
 
+        public bool EnableRequestLog { get; set; }
+
         /// <summary>
         /// 日志是否输出到控制台
         /// </summary>
@@ -61,6 +63,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             //默认记录EFCore查询语句
             EFCoreCommandLevel = LogEventLevel.Debug;
             RequestLogLevel = LogEventLevel.Verbose;
+            EnableRequestLog = true;
             ConsoleLog = true;
             FileLog = true;
             HttpHeaders = new List<string>() { "x-request-id" };

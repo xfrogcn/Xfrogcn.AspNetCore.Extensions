@@ -121,6 +121,7 @@ namespace Microsoft.AspNetCore.Hosting
                 parseConfig(context.Configuration);
                 configAction?.Invoke(config);
 
+
                 // 默认配置
                 var loggerConfiguration = new LoggerConfiguration()
                         .MinimumLevel.Is(config.AppLogLevel)
