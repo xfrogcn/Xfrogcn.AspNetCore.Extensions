@@ -8,7 +8,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
         public bool IsExpired()
         {
-            if (((DateTime.UtcNow - LastGetTime).TotalSeconds - expires_in) >= -30)
+            if (((DateTime.UtcNow - LastGetTime.ToUniversalTime()).TotalSeconds - expires_in) >= -30)
             {
                 return true;
             }

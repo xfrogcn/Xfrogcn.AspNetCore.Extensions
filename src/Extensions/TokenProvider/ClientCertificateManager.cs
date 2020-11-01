@@ -63,6 +63,10 @@ namespace Xfrogcn.AspNetCore.Extensions
         {
             // 从缓存中获取token
             TokenCache token = await _cacheManager.GetToken();
+            //if (token != null)
+            //{
+            //    _logger.LogInformation($"cache token: {Client.ClientID} {token.expires_in} {token.LastGetTime} {(DateTime.UtcNow - token.LastGetTime.ToUniversalTime()).TotalSeconds - token.expires_in}");
+            //}
             
             if (token == null || token.IsExpired())
             {
