@@ -89,11 +89,14 @@ namespace Extensions.Tests.AutoMapper
         {
             ParameterExpression s = Expression.Parameter(typeof(TSource));
             ParameterExpression t = Expression.Variable(typeof(TTarget));
-            PropertyAssignGenerator g = new PropertyAssignGenerator(s,t,provider);
+            ParameterExpression checkerVar = Expression.Variable(typeof(CircularRefChecker));
+            PropertyAssignGenerator g = new PropertyAssignGenerator(s,t, checkerVar, provider);
             var expression = g.GenerateExpression();
 
             Expression<Func<TSource, TTarget>> lam = Expression.Lambda<Func<TSource, TTarget>>(
-                Expression.Block(new ParameterExpression[] { t }, expression, t), s);
+                Expression.Block(new ParameterExpression[] { t, checkerVar }, 
+                Expression.Assign(checkerVar, Expression.New(typeof(CircularRefChecker))),
+                expression, t), s);
             Func<TSource, TTarget> func = lam.Compile();
             return func;
         }

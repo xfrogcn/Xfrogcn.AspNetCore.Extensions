@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = true, Inherited = true)]
     public class MapperPropertyNameAttribute : Attribute
     {
         public string Name { get; set; }

@@ -14,6 +14,7 @@ namespace Extensions.Tests.AutoMapper
         public class S1
         {
             [MapperPropertyName(Name = "B", TargetType = typeof(T2))]
+            [MapperPropertyName(Name = "B")]
             public int A { get; set; }
         }
 
@@ -244,11 +245,11 @@ namespace Extensions.Tests.AutoMapper
             var t2 = mapper2.Convert(dic2);
             Assert.Equal(10, t2.Keys.ToList()[0].A);
             Assert.Equal(15, t2.Keys.ToList()[1].A);
-            Assert.Equal(15, t2.Values.ToList()[1].B);
+            Assert.Equal(15, t2.Values.ToList()[1].A);
         }
 
 
-        [Fact(DisplayName = "列表")]
+        [Fact(DisplayName = "列表2")]
         public void Test7()
         {
             IServiceCollection sc = new ServiceCollection()
@@ -265,13 +266,13 @@ namespace Extensions.Tests.AutoMapper
             Assert.Equal("B", t1[1]);
 
             // array ==> array
-            var m2 = provider.GetMapper<ValueWrapper<decimal[]>, ValueWrapper<byte[]>>();
-            var t2 = m2.Convert(new ValueWrapper<decimal[]>() { Value = new decimal[] { 1, 2, 300 } });
-            Assert.Equal(3, t2.Value.Length);
-            Assert.Equal(1, t2.Value[0]);
-            Assert.Equal(2, t2.Value[1]);
+            var m2 = provider.GetMapper<decimal[], byte[]>();
+            var t2 = m2.Convert(new decimal[] { 1, 2, 300 } );
+            Assert.Equal(3, t2.Length);
+            Assert.Equal(1, t2[0]);
+            Assert.Equal(2, t2[1]);
             //越界
-            Assert.Equal(0, t2.Value[2]);
+            Assert.Equal(0, t2[2]);
 
             // 如果目标是Object，取原类型
             var m3 = provider.GetMapper<List<S1>, List<object>>();
@@ -307,6 +308,43 @@ namespace Extensions.Tests.AutoMapper
             Assert.Equal(11, t1.B);
             // 注意先后关系
             Assert.Equal(12, t1.A);
+        }
+
+
+        public class S5
+        {
+            [MapperPropertyName(Name = "T1")]
+            public S1 S1 { get; set; }
+
+            public S5 Self { get; set; }
+        }
+
+        public class T5
+        {
+            public T1 T1 { get; set; }
+
+            public T5 Self { get; set; }
+        }
+
+        [Fact(DisplayName = "递归引用")]
+        public void Test9()
+        {
+            IServiceCollection sc = new ServiceCollection()
+               .AddLightweightMapper();
+
+            IServiceProvider sp = sc.BuildServiceProvider();
+            IMapperProvider provider = sp.GetRequiredService<IMapperProvider>();
+
+            S5 s5 = new S5()
+            {
+                S1 = new S1()
+                {
+                    A = 10
+                }
+            };
+            s5.Self = s5;
+
+            T5 t5 = provider.Convert<S5, T5>(s5);
         }
     }
 }

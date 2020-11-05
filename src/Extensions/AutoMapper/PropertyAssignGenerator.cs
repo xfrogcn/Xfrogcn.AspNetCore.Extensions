@@ -24,6 +24,7 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
 
         ParameterExpression _sourcePar;
         ParameterExpression _targetPar;
+        ParameterExpression _crCheckerPar;
         Type _sourceType;
         Type _targetType;
         IMapperProvider _mapper;
@@ -31,8 +32,9 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
         public PropertyAssignGenerator(
             ParameterExpression sourcePar,
             ParameterExpression targetPar,
+            ParameterExpression crCheckerPar,
             IMapperProvider mapper)
-            : this(sourcePar, targetPar, sourcePar.Type, targetPar.Type, mapper)
+            : this(sourcePar, targetPar, crCheckerPar, sourcePar.Type, targetPar.Type, mapper)
         {
 
         }
@@ -40,12 +42,14 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
         public PropertyAssignGenerator(
             ParameterExpression sourcePar, 
             ParameterExpression targetPar,
+            ParameterExpression crCheckerPar,
             Type sourceType,
             Type targetType,
             IMapperProvider mapper)
         {
             _sourcePar = sourcePar;
             _targetPar = targetPar;
+            _crCheckerPar = crCheckerPar;
             _sourceType = sourceType;
             _targetType = targetType;
             _mapper = mapper;
@@ -184,8 +188,6 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
         {
             if (_sourceType.IsClass && _targetType.IsClass && _targetType != typeof(string))
             {
-                
-
                 Expression provider = Expression.Constant(_mapper);
                 MethodInfo mi = _mapper.GetType().GetMethod(nameof(IMapperProvider.GetMapper));
 
@@ -198,7 +200,20 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
 
                 var assign2 = Expression.Assign(
                     _targetPar,
-                    Expression.Call(mapperVar, convertMethod, _sourcePar));
+                    Expression.Call(mapperVar, convertMethod, _sourcePar, _crCheckerPar));
+
+                //ParameterExpression cacheValueVar = ParameterExpression.Variable(_targetType);
+                //Expression cacheValueAssign = Expression.Assign(
+                //    cacheValueVar,
+                //    Expression.Convert(Expression.Call(_crCheckerPar, CircularRefChecker.GetValueMethod, Expression.Convert(_sourcePar, typeof(object)), Expression.Constant(_targetType)), _targetType));
+                //Expression.IfThenElse(
+                //    Expression.NotEqual(cacheValueAssign, Expression.Constant(null)),
+                //    Expression.Assign(_targetPar, cacheValueVar),
+                //    Expression.Block(
+                //        new ParameterExpression[] { mapperVar },
+                //        assign,
+                //        assign2
+                //    ));
 
                 var ifExp = Expression.IfThen(
                     Expression.NotEqual(_sourcePar, Expression.Constant(null)),
@@ -228,7 +243,7 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
 
                 MethodInfo convertMethod = mapperType.GetMethod("CopyTo");
 
-                var assign2 = Expression.Call(mapperVar, convertMethod, _sourcePar, _targetPar);
+                var assign2 = Expression.Call(mapperVar, convertMethod, _sourcePar, _targetPar, _crCheckerPar);
 
                 var ifExp = Expression.IfThen(
                     Expression.AndAlso(
@@ -260,7 +275,7 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
    
             if(isNullableSource)
             {
-                var g = new PropertyAssignGenerator(_sourcePar, _targetPar, sType, _targetType, _mapper);
+                var g = new PropertyAssignGenerator(_sourcePar, _targetPar, _crCheckerPar, sType, _targetType, _mapper);
                 var exp = g.GenerateExpression();
                 if (exp != null)
                 {
