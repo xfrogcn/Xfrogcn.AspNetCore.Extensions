@@ -376,5 +376,58 @@ namespace Extensions.Tests.AutoMapper
             Assert.Equal(11, item2.Key.S1.A);
 
         }
+
+        [Fact(DisplayName = "递归引用-CopyTo")]
+        public void Test10()
+        {
+            IServiceCollection sc = new ServiceCollection()
+               .AddLightweightMapper();
+
+            IServiceProvider sp = sc.BuildServiceProvider();
+            IMapperProvider provider = sp.GetRequiredService<IMapperProvider>();
+
+            S5 s5 = new S5()
+            {
+                S1 = new S1()
+                {
+                    A = 10
+                }
+            };
+            s5.Self = s5;
+
+            T5 t5 = new T5();
+            provider.CopyTo<S5, T5>(s5,t5);
+            Assert.Equal(t5.Self, t5.Self.Self);
+            Assert.Equal(10, t5.T1.A);
+
+            // List
+            List<S5> list = new List<S5>();
+            list.Add(s5);
+            list.Add(s5);
+            list.Add(s5);
+
+            List<T5> t5List = new List<T5>();
+            provider.CopyTo<List<S5>, List<T5>>(list, t5List);
+            Assert.NotNull(t5List);
+            Assert.Equal(3, t5List.Count);
+            Assert.Equal(t5List[0], t5List[1]);
+            Assert.Equal(t5List[0], t5List[2]);
+
+            Dictionary<S5, S5> dic = new Dictionary<S5, S5>()
+            {
+                {s5,s5 },
+                {new S5(){ S1 = new S1{ A=11 } },s5 }
+            };
+
+            Dictionary<T5, T5> targetDic = new Dictionary<T5, T5>();
+            provider.CopyTo<Dictionary<S5, S5>, Dictionary<T5, T5>>(dic, targetDic);
+            Assert.NotNull(targetDic);
+            Assert.Equal(2, targetDic.Count);
+            var item1 = dic.First();
+            var item2 = dic.Last();
+            Assert.Equal(item1.Value, item2.Value);
+            Assert.Equal(item1.Key, item1.Value);
+            Assert.Equal(11, item2.Key.S1.A);
+        }
     }
 }

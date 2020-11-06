@@ -77,7 +77,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             ParameterExpression targetPar = Expression.Parameter(typeof(TTarget));
             ParameterExpression crCheckerPar = Expression.Parameter(typeof(CircularRefChecker), "checker");
 
-            Action<TSource, TTarget> converter = GenerateDefaultCopyToDelegate();
+            Action<TSource, TTarget, CircularRefChecker> converter = GenerateDefaultCopyToDelegate();
 
             List<Expression> expList = new List<Expression>();
             Expression checkAssign = Expression.Assign(
@@ -98,7 +98,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
         }
 
-        public virtual Action<TSource, TTarget> GenerateDefaultCopyToDelegate()
+        public virtual Action<TSource, TTarget, CircularRefChecker> GenerateDefaultCopyToDelegate()
         {
             Type sType = typeof(TSource);
             Type tType = typeof(TTarget);
@@ -139,7 +139,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                 else
                 {
                     // 单值不存在CopyTo
-                    return (s, t) => { };
+                    return (s, t, checker) => { };
                 }
             }
             else
@@ -149,7 +149,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             }
            
 
-            return Expression.Lambda<Action<TSource, TTarget>>(
+            return Expression.Lambda<Action<TSource, TTarget, CircularRefChecker>>(
                 Expression.Block(
                     new ParameterExpression[] { targetVar },
                     Expression.IfThen(
