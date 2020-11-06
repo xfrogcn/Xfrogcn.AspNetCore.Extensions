@@ -16,7 +16,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
         protected Func<TSource, CircularRefChecker, TTarget> _converter = null;
 
-        protected Action<TSource, TTarget> _copy = null;
+        protected Action<TSource, TTarget, CircularRefChecker> _copy = null;
 
         private static Type[] numbericTypes = new Type[]
         {
@@ -46,7 +46,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                 {
                     if (_converter == null)
                     {
-                        _converter = GenerateConvertDelegate(checker);
+                        _converter = GenerateConvertDelegate();
                     }
                 }
             }
@@ -63,33 +63,42 @@ namespace Xfrogcn.AspNetCore.Extensions
                 {
                     if (_copy == null)
                     {
-                        _copy = GenerateCopyToDelegate(checker);
+                        _copy = GenerateCopyToDelegate();
                     }
                 }
             }
-            _copy.Invoke(source, target);
+            _copy.Invoke(source, target, checker);
         }
 
-        public virtual Action<TSource, TTarget> GenerateCopyToDelegate(CircularRefChecker checker)
+        public virtual Action<TSource, TTarget, CircularRefChecker> GenerateCopyToDelegate()
         {
-            Action<TSource, TTarget> converter = GenerateDefaultCopyToDelegate(checker);
+            
             ParameterExpression sourcePar = Expression.Parameter(typeof(TSource));
             ParameterExpression targetPar = Expression.Parameter(typeof(TTarget));
+            ParameterExpression crCheckerPar = Expression.Parameter(typeof(CircularRefChecker), "checker");
+
+            Action<TSource, TTarget> converter = GenerateDefaultCopyToDelegate();
 
             List<Expression> expList = new List<Expression>();
-            expList.Add(Expression.Invoke(Expression.Constant(converter), sourcePar, targetPar));
+            Expression checkAssign = Expression.Assign(
+               crCheckerPar,
+               Expression.Convert(Expression.Coalesce(crCheckerPar, Expression.New(typeof(CircularRefChecker))), typeof(CircularRefChecker)));
+
+            expList.Add(checkAssign);
+
+            expList.Add(Expression.Invoke(Expression.Constant(converter), sourcePar, targetPar, crCheckerPar));
 
             runConverter(sourcePar, targetPar, expList);
 
 
-            return Expression.Lambda<Action<TSource, TTarget>>(
+            return Expression.Lambda<Action<TSource, TTarget, CircularRefChecker>>(
                 Expression.Block(
                 expList
-                ), sourcePar, targetPar).Compile();
+                ), sourcePar, targetPar, crCheckerPar).Compile();
 
         }
 
-        public virtual Action<TSource, TTarget> GenerateDefaultCopyToDelegate(CircularRefChecker checker)
+        public virtual Action<TSource, TTarget> GenerateDefaultCopyToDelegate()
         {
             Type sType = typeof(TSource);
             Type tType = typeof(TTarget);
@@ -97,22 +106,14 @@ namespace Xfrogcn.AspNetCore.Extensions
             ParameterExpression sourcePar = Expression.Parameter(sType, "source");
             ParameterExpression targetPar = Expression.Parameter(tType, "target");
             ParameterExpression targetVar = Expression.Variable(tType);
-            ParameterExpression crCheckerVar = Expression.Variable(typeof(CircularRefChecker), "checker");
-            // ParameterExpression cacheValueVar = ParameterExpression.Variable(tType);
+            ParameterExpression crCheckerPar = Expression.Parameter(typeof(CircularRefChecker), "checker");
+       
 
-            Expression checkAssign = Expression.Assign(
-                crCheckerVar,
-                Expression.Convert( Expression.Coalesce(Expression.Constant(checker), Expression.New(typeof(CircularRefChecker))), typeof(CircularRefChecker)));
-
-
-
-            var g = new PropertyAssignGenerator(sourcePar, targetVar,crCheckerVar, _provider);
+            var g = new PropertyAssignGenerator(sourcePar, targetVar, crCheckerPar, _provider);
             var exp = g.GenerateExpression();
 
 
             List<Expression> expList = new List<Expression>() { };
-
-            expList.Add(checkAssign);
 
             if (exp != null)
             {
@@ -144,20 +145,20 @@ namespace Xfrogcn.AspNetCore.Extensions
             else
             {
                 // 类转换
-                expList.AddRange(GeneratePropertyAssignExpression(sourcePar, targetPar, crCheckerVar, true));
+                expList.AddRange(GeneratePropertyAssignExpression(sourcePar, targetPar, crCheckerPar, true));
             }
            
 
             return Expression.Lambda<Action<TSource, TTarget>>(
                 Expression.Block(
-                    new ParameterExpression[] { targetVar, crCheckerVar},
+                    new ParameterExpression[] { targetVar },
                     Expression.IfThen(
                         Expression.NotEqual(Expression.Constant(targetPar), Expression.Constant(null)),
                         Expression.Block( expList))
-                ), sourcePar, targetPar).Compile();
+                ), sourcePar, targetPar, crCheckerPar).Compile();
         }
 
-        public virtual Func<TSource, CircularRefChecker, TTarget> GenerateConvertDelegate(CircularRefChecker checker)
+        public virtual Func<TSource, CircularRefChecker, TTarget> GenerateConvertDelegate()
         {
            
             ParameterExpression sourcePar = Expression.Parameter(typeof(TSource));
@@ -169,7 +170,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             List<Expression> expList = new List<Expression>();
             Expression checkAssign = Expression.Assign(
                crCheckerPar,
-               Expression.Convert(Expression.Coalesce(Expression.Constant(checker), Expression.New(typeof(CircularRefChecker))), typeof(CircularRefChecker)));
+               Expression.Convert(Expression.Coalesce(crCheckerPar, Expression.New(typeof(CircularRefChecker))), typeof(CircularRefChecker)));
 
             expList.Add(checkAssign);
 
@@ -250,27 +251,15 @@ namespace Xfrogcn.AspNetCore.Extensions
                         Expression.Block(subExpList),
                         Expression.Assign(targetVar, cacheValueVar)
                         ));
-
-
-
-             //   expList.Add(Expression.Call(crCheckerVar, CircularRefChecker.SetInstanceMethod, sourcePar, Expression.Constant(tType), targetVar));
-
-                
-               
-                //expList.Add(newExpression);
-              //  expList.Add(checkAssign);
-               
-                // 类转换
-                //expList.AddRange(GeneratePropertyAssignExpression(sourcePar, targetVar, false));
             }
             expList.Add(targetVar);
 
-
-            return Expression.Lambda<Func<TSource,CircularRefChecker, TTarget>>(
-                Expression.Block(
-                    new ParameterExpression[] { targetVar, checkerPar, cacheValueVar },
+            Expression block = Expression.Block(
+                    new ParameterExpression[] { targetVar, cacheValueVar },
                     expList
-                ), sourcePar, checkerPar).Compile();
+                );
+
+            return Expression.Lambda<Func<TSource,CircularRefChecker, TTarget>>(block,sourcePar, checkerPar).Compile();
         }
 
         public virtual List<Expression> GeneratePropertyAssignExpression(ParameterExpression sourcePar, ParameterExpression targetPar, ParameterExpression checkerPar, bool isCopy= false, Dictionary<MemberInfo, Expression> excludeProperties = null)
@@ -286,10 +275,6 @@ namespace Xfrogcn.AspNetCore.Extensions
                 property = property ?? tpis.FirstOrDefault(p => p.Name.Equals(pi.Name, StringComparison.OrdinalIgnoreCase));
 
                 Expression excludeExpression = excludeProperties?.FirstOrDefault(p=>p.Key == pi || (p.Key.DeclaringType == pi.DeclaringType && p.Key.Name == pi.Name)).Value;
-                //if (excludeProperties!=null && excludeProperties.ContainsKey(pi))
-                //{
-                //    excludeExpression = excludeProperties[pi];
-                //}
                 if(excludeExpression?.NodeType == ExpressionType.MemberAccess ||
                     excludeExpression?.NodeType == ExpressionType.Constant)
                 {
@@ -323,14 +308,6 @@ namespace Xfrogcn.AspNetCore.Extensions
                 {
                     property = tpis.FirstOrDefault(p => targetNames.Contains(p.Name, StringComparer.OrdinalIgnoreCase));
                 }
-                //if (property == null)
-                //{
-                //    targetNames = tAttrs.Where(a => a.SourceType != null && a.SourceType.IsAssignableFrom(sType)).Select(a => a.Name).ToList();
-                //    if (targetNames.Count > 0)
-                //    {
-                //        property = tpis.FirstOrDefault(p => targetNames.Contains(p.Name, StringComparer.OrdinalIgnoreCase));
-                //    }
-                //}
                 if (property == null)
                 {
                     // 默认
@@ -340,15 +317,6 @@ namespace Xfrogcn.AspNetCore.Extensions
                         property = tpis.FirstOrDefault(p => targetNames.Contains(p.Name, StringComparer.OrdinalIgnoreCase));
                     }
                 }
-                //if (property == null)
-                //{
-                //    // 默认
-                //    targetNames = tAttrs.Where(a => a.SourceType == null).Select(a => a.Name).ToList();
-                //    if (targetNames.Count > 0)
-                //    {
-                //        property = tpis.FirstOrDefault(p => targetNames.Contains(p.Name, StringComparer.OrdinalIgnoreCase));
-                //    }
-                //}
 
                 if (property == null || !property.CanWrite)
                 {

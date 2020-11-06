@@ -24,6 +24,18 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
                 TargetType = targetType;
             }
 
+            public override bool Equals(object obj)
+            {
+                if( obj == null || !(obj is RefKey))
+                {
+                    return false;
+                }
+
+                var other = obj as RefKey;
+
+                return Instance == other.Instance && TargetType == other.TargetType;
+            }
+
             public override int GetHashCode()
             {
                 return (Instance == null ? 0 : Instance.GetHashCode()) ^ (TargetType == null ? 0 : TargetType.GetHashCode());

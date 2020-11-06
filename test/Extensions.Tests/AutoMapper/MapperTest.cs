@@ -326,7 +326,7 @@ namespace Extensions.Tests.AutoMapper
             public T5 Self { get; set; }
         }
 
-        [Fact(DisplayName = "递归引用")]
+        [Fact(DisplayName = "递归引用-Convert")]
         public void Test9()
         {
             IServiceCollection sc = new ServiceCollection()
@@ -345,6 +345,36 @@ namespace Extensions.Tests.AutoMapper
             s5.Self = s5;
 
             T5 t5 = provider.Convert<S5, T5>(s5);
+            Assert.Equal(t5.Self, t5);
+            Assert.Equal(10, t5.T1.A);
+
+            // List
+            List<S5> list = new List<S5>();
+            list.Add(s5);
+            list.Add(s5);
+            list.Add(s5);
+
+            List<T5> t5List = provider.ConvertList<S5, T5>(list);
+            Assert.NotNull(t5List);
+            Assert.Equal(3, t5List.Count);
+            Assert.Equal(t5List[0], t5List[1]);
+            Assert.Equal(t5List[0], t5List[2]);
+
+            Dictionary<S5, S5> dic = new Dictionary<S5, S5>()
+            {
+                {s5,s5 },
+                {new S5(){ S1 = new S1{ A=11 } },s5 }
+            };
+
+            var targetDic = provider.Convert<Dictionary<S5, S5>, Dictionary<T5, T5>>(dic);
+            Assert.NotNull(targetDic);
+            Assert.Equal(2, targetDic.Count);
+            var item1 = dic.First();
+            var item2 = dic.Last();
+            Assert.Equal(item1.Value, item2.Value);
+            Assert.Equal(item1.Key, item1.Value);
+            Assert.Equal(11, item2.Key.S1.A);
+
         }
     }
 }

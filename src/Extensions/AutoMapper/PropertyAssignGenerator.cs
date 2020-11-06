@@ -202,18 +202,6 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
                     _targetPar,
                     Expression.Call(mapperVar, convertMethod, _sourcePar, _crCheckerPar));
 
-                //ParameterExpression cacheValueVar = ParameterExpression.Variable(_targetType);
-                //Expression cacheValueAssign = Expression.Assign(
-                //    cacheValueVar,
-                //    Expression.Convert(Expression.Call(_crCheckerPar, CircularRefChecker.GetValueMethod, Expression.Convert(_sourcePar, typeof(object)), Expression.Constant(_targetType)), _targetType));
-                //Expression.IfThenElse(
-                //    Expression.NotEqual(cacheValueAssign, Expression.Constant(null)),
-                //    Expression.Assign(_targetPar, cacheValueVar),
-                //    Expression.Block(
-                //        new ParameterExpression[] { mapperVar },
-                //        assign,
-                //        assign2
-                //    ));
 
                 var ifExp = Expression.IfThen(
                     Expression.NotEqual(_sourcePar, Expression.Constant(null)),
@@ -418,7 +406,9 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
                     Expression.Call(
                         Expression.Constant(this),
                         mi,
-                        _sourcePar, tlistInstance));
+                        _sourcePar, 
+                        tlistInstance,
+                        _crCheckerPar));
             }
             return null;
         }
@@ -449,7 +439,7 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
             return isList;
         }
 
-        private TTargetList ListConvert<TItem, TTargetList, TTargetItem>(IEnumerable<TItem> source, TTargetList tlist)
+        private TTargetList ListConvert<TItem, TTargetList, TTargetItem>(IEnumerable<TItem> source, TTargetList tlist, CircularRefChecker checker)
         {
             if (source == null)
             {
@@ -465,7 +455,7 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
                 int i = 0;
                 while (itor.MoveNext())
                 {
-                    list[i] = mapper.Convert(itor.Current);
+                    list[i] = mapper.Convert(itor.Current, checker);
                     i++;
                 }
                 return (TTargetList)(object)list;
@@ -478,7 +468,7 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
                     var itor = source.GetEnumerator();
                     while (itor.MoveNext())
                     {
-                        list.Add(mapper.Convert(itor.Current));
+                        list.Add(mapper.Convert(itor.Current, checker));
                     }
                 }
                 return tlist;
@@ -506,7 +496,8 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
                     Expression.Call(
                         Expression.Constant(this),
                         mi,
-                        _sourcePar));
+                        _sourcePar,
+                        _crCheckerPar));
             }
             return null;
         }
@@ -524,7 +515,7 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
         }
 
 
-        private TTargetDicValue DictionayConvert<TKey, TValue, TTargetDicValue, TTargetKey, TTargetValue>(IDictionary<TKey, TValue> source)
+        private TTargetDicValue DictionayConvert<TKey, TValue, TTargetDicValue, TTargetKey, TTargetValue>(IDictionary<TKey, TValue> source, CircularRefChecker checker)
              where TTargetDicValue : IDictionary<TTargetKey, TTargetValue>, new()
         {
             if (source == null)
@@ -536,12 +527,12 @@ namespace Xfrogcn.AspNetCore.Extensions.AutoMapper
             var valueMapper = _mapper.GetMapper<TValue, TTargetValue>();
             foreach (var kv in source)
             {
-                var tKeyVal = keyMapper.Convert(kv.Key);
+                var tKeyVal = keyMapper.Convert(kv.Key, checker);
                 if (tKeyVal == null)
                 {
                     continue;
                 }
-                var tVal = valueMapper.Convert(kv.Value);
+                var tVal = valueMapper.Convert(kv.Value, checker);
                 dic.Add(tKeyVal, tVal);
             }
             return dic;
