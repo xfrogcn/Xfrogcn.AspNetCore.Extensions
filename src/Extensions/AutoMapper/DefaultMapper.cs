@@ -164,8 +164,9 @@ namespace Xfrogcn.AspNetCore.Extensions
             ParameterExpression sourcePar = Expression.Parameter(typeof(TSource));
             ParameterExpression crCheckerPar = Expression.Parameter(typeof(CircularRefChecker), "checker");
             ParameterExpression targetVar = Expression.Variable(typeof(TTarget));
+            ParameterExpression checkerVar = Expression.Variable(typeof(CircularRefChecker));
 
-            Func<TSource, CircularRefChecker, TTarget> converter = GenerateDefaultConvertDelegate(crCheckerPar);
+            Func<TSource, CircularRefChecker, TTarget> converter = GenerateDefaultConvertDelegate();
 
             List<Expression> expList = new List<Expression>();
             Expression checkAssign = Expression.Assign(
@@ -174,7 +175,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
             expList.Add(checkAssign);
 
-            expList.Add(Expression.Assign(targetVar, Expression.Invoke(Expression.Constant(converter), sourcePar, crCheckerPar)));
+            expList.Add(Expression.Assign(targetVar, Expression.Invoke(Expression.Constant(converter), sourcePar, checkerVar)));
 
             runConverter(sourcePar, targetVar, expList);
 
@@ -182,7 +183,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
             return Expression.Lambda<Func<TSource, CircularRefChecker, TTarget>>(
                 Expression.Block(
-                new ParameterExpression[] { targetVar },
+                new ParameterExpression[] { targetVar, checkerVar },
                 expList
                 ), sourcePar, crCheckerPar).Compile();
 
@@ -208,14 +209,14 @@ namespace Xfrogcn.AspNetCore.Extensions
             }
         }
 
-        public virtual Func<TSource,CircularRefChecker, TTarget> GenerateDefaultConvertDelegate(ParameterExpression checkerPar)
+        public virtual Func<TSource,CircularRefChecker, TTarget> GenerateDefaultConvertDelegate()
         {
             Type sType = typeof(TSource);
             Type tType = typeof(TTarget);
 
             ParameterExpression sourcePar = Expression.Parameter(sType, "source");
             ParameterExpression targetVar = Expression.Variable(tType, "target");
-            
+            ParameterExpression checkerPar = Expression.Parameter(typeof(CircularRefChecker), "checker");
             ParameterExpression cacheValueVar = Expression.Variable(tType, "cacheVal");
 
            

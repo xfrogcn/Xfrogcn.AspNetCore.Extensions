@@ -16,8 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Extensiions.RedisQueueProducer\Xfrogcn.AspNetCore.Extensiions.RedisQueueProducer.csproj" />
     <ProjectReference Include="..\..\src\Extensions\Xfrogcn.AspNetCore.Extensions.csproj" />
+    <ProjectReference Include="..\..\src\Extensions.RedisQueueProducer\Xfrogcn.AspNetCore.Extensions.RedisQueueProducer.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="TokenProvider\" />
