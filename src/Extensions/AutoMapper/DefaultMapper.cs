@@ -164,7 +164,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             ParameterExpression sourcePar = Expression.Parameter(typeof(TSource));
             ParameterExpression crCheckerPar = Expression.Parameter(typeof(CircularRefChecker), "checker");
             ParameterExpression targetVar = Expression.Variable(typeof(TTarget));
-            ParameterExpression checkerVar = Expression.Variable(typeof(CircularRefChecker));
+          //  ParameterExpression checkerVar = Expression.Variable(typeof(CircularRefChecker));
 
             Func<TSource, CircularRefChecker, TTarget> converter = GenerateDefaultConvertDelegate();
 
@@ -175,7 +175,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
             expList.Add(checkAssign);
 
-            expList.Add(Expression.Assign(targetVar, Expression.Invoke(Expression.Constant(converter), sourcePar, checkerVar)));
+            expList.Add(Expression.Assign(targetVar, Expression.Invoke(Expression.Constant(converter), sourcePar, crCheckerPar)));
 
             runConverter(sourcePar, targetVar, expList);
 
@@ -183,7 +183,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
             return Expression.Lambda<Func<TSource, CircularRefChecker, TTarget>>(
                 Expression.Block(
-                new ParameterExpression[] { targetVar, checkerVar },
+                new ParameterExpression[] { targetVar},
                 expList
                 ), sourcePar, crCheckerPar).Compile();
 
