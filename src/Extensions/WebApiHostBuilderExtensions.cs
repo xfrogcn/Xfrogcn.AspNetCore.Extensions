@@ -26,6 +26,8 @@ namespace Microsoft.AspNetCore.Hosting
 
         private static void parseConfig(IConfiguration configuration)
         {
+            configuration.Bind(config);
+
             string consoleLog = configuration["CONSOLE_LOG"];
             string systemLoglevel = configuration["SYSTEM_LOG_LEVEL"];
             string appLoglevel = configuration["APP_LOG_LEVEL"];
@@ -33,8 +35,7 @@ namespace Microsoft.AspNetCore.Hosting
             string port = configuration["APP_PORT"];
             string requestLogLevel = configuration["REQUEST_LOG_LEVEL"];
             string maxLogLenght = configuration["MAX_LOG_LENGTH"];
-            string ignoreLongLog = configuration["IGNORE_LONG_LOG"];
-
+          
             if (!String.IsNullOrWhiteSpace(appLoglevel))
             {
                 LogEventLevel appLevel = LogEventLevel.Debug;
@@ -79,11 +80,7 @@ namespace Microsoft.AspNetCore.Hosting
                     config.MaxLogLength = ml;
                 }
             }
-            if (!String.IsNullOrWhiteSpace(ignoreLongLog))
-            {
-                config.IgnoreLongLog = convertConfigBoolValue(ignoreLongLog, config.IgnoreLongLog).Value;
-            }
-
+           
 
             config.ConsoleLog = convertConfigBoolValue(consoleLog, config.ConsoleLog).Value;
 
@@ -121,64 +118,25 @@ namespace Microsoft.AspNetCore.Hosting
                 parseConfig(context.Configuration);
                 configAction?.Invoke(config);
 
-
-                // 默认配置
-                var loggerConfiguration = new LoggerConfiguration()
-                        .MinimumLevel.Is(config.AppLogLevel)
-                        .MinimumLevel.Override("Microsoft", config.SystemLogLevel)
-                        .MinimumLevel.Override("Microsoft.AspNetCore", config.AppLogLevel)
-                        .MinimumLevel.Override("Microsoft.Hosting", config.AppLogLevel)
-                        .MinimumLevel.Override("System", config.SystemLogLevel)
-                        .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", config.EFCoreCommandLevel)
-                        .MinimumLevel.Override("System.Net.Http.HttpClient", config.AppLogLevel);
-
-                configureLogger?.Invoke(context, loggerConfiguration);
-
                 if (config.Port > 0)
                 {
                     builder.UseSetting("URLS", $"http://*:{config.Port}");
                 }
 
-                loggerConfiguration = loggerConfiguration.Enrich.FromLogContext();
-
-                if (config.ConsoleLog)
+                if (config.EnableSerilog)
                 {
-                    loggerConfiguration = loggerConfiguration.WriteTo.Console(config.SystemLogLevel);
-                }
-                if(config.FileLog)
-                {
-                    
-                    string logPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Logs");
-                    if (!System.IO.Directory.Exists(logPath))
+                    collection.AddDefaultSerilog(config, (logConfig) =>
                     {
-                        System.IO.Directory.CreateDirectory(logPath);
-                    }
-                   // logPath = logPath.TrimEnd(System.IO.Path.DirectorySeparatorChar) + System.IO.Path.DirectorySeparatorChar +  "{Date}/logs.txt";
-                    ArchiveHooks archiveHooks = new ArchiveHooks(CompressionLevel.Fastest);
-                    string template = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{NewLine}{Exception}";
-                    loggerConfiguration = loggerConfiguration
-                        .WriteTo.Map("SourceContext", (sc, lc) => {
-                            lc.File(
-                                 Path.Combine(logPath, $"{DateTime.Now.ToString("yyyy-MM-dd")}/{sc}.txt"),
-                                 rollingInterval: RollingInterval.Day,
-                                 rollOnFileSizeLimit: true,
-                                 fileSizeLimitBytes: 1024 * 1024 * 100,
-                                 retainedFileCountLimit: 128,
-                                 hooks: archiveHooks,
-                                 outputTemplate: template);
-                        });
+                        configureLogger?.Invoke(context, logConfig);
+                        logConfig.ReadFrom.Configuration(context.Configuration);
+                    });
                 }
 
-                var logger = loggerConfiguration.CreateLogger();
-
-                Log.Logger = logger;
 
                 collection.AddExtensions();
                 // 默认从配置的_Clients节点获取客户端列表（以客户端名称为key，下配置clientId,clientSecret)
                 collection.AddClientTokenProvider(context.Configuration);
                 collection.AddSingleton<WebApiConfig>(config);
-                collection.AddSingleton<ILoggerFactory>(services => new SerilogLoggerFactory(null, true));
-
                 collection.AddSingleton<IStartupFilter, WebApiStartupFilter>();
 
                 StringBuilder sb = new StringBuilder();
@@ -192,7 +150,7 @@ namespace Microsoft.AspNetCore.Hosting
                 }
 
 
-                logger.Information($"初始化完成，系统日志级别：{config.SystemLogLevel}, 应用日志级别：{config.AppLogLevel}, EF Core Command日志级别：{config.EFCoreCommandLevel} 是否开启控制台日志：{config.ConsoleLog}, 监听端口：{config.Port}, 记录以下HTTP请求头：{sb.ToString()} ");
+                InnerLogger.Information($"初始化完成，系统日志级别：{config.SystemLogLevel}, 应用日志级别：{config.AppLogLevel}, EF Core Command日志级别：{config.EFCoreCommandLevel} 是否开启控制台日志：{config.ConsoleLog}, 监听端口：{config.Port}, 记录以下HTTP请求头：{sb.ToString()} ");
 
 
             })

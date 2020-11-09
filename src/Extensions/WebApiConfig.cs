@@ -5,7 +5,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 {
     public class WebApiConfig
     {
-
+        public bool EnableSerilog { get; set; }
         /// <summary>
         /// 系统日志级别
         /// </summary>
@@ -54,10 +54,19 @@ namespace Xfrogcn.AspNetCore.Extensions
         /// <summary>
         /// 是否忽略长日志, 默认忽略，除非设置了IGNORE_LONG_LOG
         /// </summary>
-        public bool IgnoreLongLog{get;set;}
+        //public bool IgnoreLongLog{get;set;}
+
+        public string LogPathTemplate { get; set; }
+
+        public string LogPath { get; set; }
+
+        public long MaxLogFileSize { get; set; }
+
+        public string LogTemplate { get; set; }
 
         public WebApiConfig()
         {
+            EnableSerilog = true;
             SystemLogLevel = LogEventLevel.Warning;
             AppLogLevel = LogEventLevel.Verbose;
             //默认记录EFCore查询语句
@@ -68,7 +77,10 @@ namespace Xfrogcn.AspNetCore.Extensions
             FileLog = true;
             HttpHeaders = new List<string>() { "x-request-id" };
             MaxLogLength = 1024 * 8; //8kb
-            IgnoreLongLog = true;
+            LogPathTemplate = LogPathTemplates.DayFolderAndLoggerNameFile;
+            LogPath = "Logs";
+            MaxLogFileSize = 1024 * 1024 * 100;
+            LogTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{NewLine}{Exception}";
         }
     }
 }
