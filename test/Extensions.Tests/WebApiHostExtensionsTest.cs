@@ -33,7 +33,7 @@ namespace Extensions.Tests
                 string log = new string('a', 1024 * 1024);
                 using (var scope = logger.BeginScope("this is a {scope}", "scope"))
                 {
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 110; i++)
                     {
                         logger.LogInformation(log);
                     }
