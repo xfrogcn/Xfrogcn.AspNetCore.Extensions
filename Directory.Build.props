@@ -3,7 +3,7 @@
     <PackageVersion>1.0.0-beta2020111001</PackageVersion>
     <Authors>王海波</Authors>
     <Copyright>王海波</Copyright>
-    <RepositoryUrl>https://github.com/xfrogcn/pluginfactory</RepositoryUrl>
+    <RepositoryUrl>https://github.com/xfrogcn/Xfrogcn.AspNetCore.Extensions</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
