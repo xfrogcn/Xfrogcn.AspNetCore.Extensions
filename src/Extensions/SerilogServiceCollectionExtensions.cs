@@ -52,6 +52,9 @@ namespace Xfrogcn.AspNetCore.Extensions
                 return factory;
             });
 
+            // 日志定时清理托管服务
+            serviceDescriptors.AddHostedService<ClearLogsHostService>();
+
             return serviceDescriptors;
         }
 
