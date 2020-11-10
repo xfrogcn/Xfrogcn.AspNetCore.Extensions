@@ -58,6 +58,21 @@ namespace Xfrogcn.AspNetCore.Extensions
             return serviceDescriptors;
         }
 
+        internal static string GetLogPath(this WebApiConfig apiConfig)
+        {
+            string path = apiConfig.LogPath;
+            if (string.IsNullOrEmpty(path))
+            {
+                path = "Logs";
+            }
+
+            if (!Path.IsPathRooted(path))
+            {
+                path = System.IO.Path.Combine(AppContext.BaseDirectory, path);
+            }
+            return path;
+        }
+
 
         private static LoggerConfiguration configFromWebApiConfig(LoggerConfiguration loggerConfiguration, WebApiConfig apiConfig)
         {
@@ -80,16 +95,8 @@ namespace Xfrogcn.AspNetCore.Extensions
             if (apiConfig.FileLog)
             {
 
-                string path = apiConfig.LogPath;
-                if (string.IsNullOrEmpty(path))
-                {
-                    path = "Logs";
-                }
+                string path = apiConfig.GetLogPath();
 
-                if (!Path.IsPathRooted(path))
-                {
-                    path = System.IO.Path.Combine(AppContext.BaseDirectory, path);
-                }
                 string pathTemplate = apiConfig.LogPathTemplate;
                 if (string.IsNullOrEmpty(pathTemplate))
                 {

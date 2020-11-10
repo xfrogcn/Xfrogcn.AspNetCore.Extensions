@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
@@ -6,11 +9,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {
-    internal class ClearLogsHostService : IHostedService
+    public class ClearLogsHostService : IHostedService
     {
         readonly WebApiConfig _config;
         System.Threading.Timer _timer;
         readonly ILogger<ClearLogsHostService> _logger;
+
+        readonly string[] logExtensions = new string[] { ".log", ".txt" };
 
         public ClearLogsHostService(
             WebApiConfig config,
@@ -32,7 +37,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             return Task.CompletedTask;
         }
 
-        private void ClearProc(object state)
+        public void ClearProc(object state)
         {
 
             try
@@ -44,7 +49,61 @@ namespace Xfrogcn.AspNetCore.Extensions
 
                 _logger.LogInformation("开始清理日志");
 
+                string dir = _config.GetLogPath();
 
+                DirectoryInfo di = new DirectoryInfo(dir);
+                if (!di.Exists)
+                {
+                    return;
+                }
+
+                DateTime now = DateTime.UtcNow;
+                DateTime startTime = now.AddDays(-_config.MaxLogDays);
+
+                // 获取所有子目录
+                List<DirectoryInfo> folders = new List<DirectoryInfo>();
+                folders.Add(di);
+                folders.AddRange(di.GetDirectories("*", SearchOption.AllDirectories));
+                folders = folders.OrderByDescending(d => d.FullName.Length).ToList();
+
+                for (int i = 0; i < folders.Count; i++)
+                {
+                    DirectoryInfo item = folders[i];
+                    FileSystemInfo[] files = item.GetFileSystemInfos("*", SearchOption.TopDirectoryOnly);
+                    foreach (var f in files)
+                    {
+                        if (logExtensions.Contains(f.Extension, StringComparer.OrdinalIgnoreCase))
+                        {
+                            string relativePath = Path.GetRelativePath(di.FullName, f.FullName);
+                            _logger.LogInformation("删除日志文件：{0}", relativePath);
+                            try
+                            {
+                                File.Delete(f.FullName);
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogError(e, "删除日志文件失败, {0}", relativePath);
+                            }
+                        }
+                    }
+
+                    // 是否空文件夹
+                    int fileCount = item.GetFiles("*", SearchOption.TopDirectoryOnly).Length;
+                    if (fileCount == 0)
+                    {
+                        string relativePath = Path.GetRelativePath(di.FullName, item.FullName);
+                        try
+                        {
+                            _logger.LogInformation("删除空目录：{0}", relativePath);
+                            item.Delete();
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.LogError(e, "删除空目录失败：{0}", relativePath);
+                        }
+                    }
+                }
+                _logger.LogInformation("已清理完毕");
             }
             catch (Exception e)
             {

@@ -150,13 +150,9 @@ namespace Microsoft.AspNetCore.Hosting
                 }
 
 
-                InnerLogger.Information($"初始化完成，系统日志级别：{config.SystemLogLevel}, 应用日志级别：{config.AppLogLevel}, EF Core Command日志级别：{config.EFCoreCommandLevel} 是否开启控制台日志：{config.ConsoleLog}, 监听端口：{config.Port}, 记录以下HTTP请求头：{sb.ToString()} ");
+                InnerLogger.Information($"初始化完成，系统日志级别：{config.SystemLogLevel}, 应用日志级别：{config.AppLogLevel}, EF Core Command日志级别：{config.EFCoreCommandLevel} 是否开启控制台日志：{config.ConsoleLog}, 监听端口：{config.Port},日志保留天数：{config.MaxLogDays} 记录以下HTTP请求头：{sb.ToString()} ");
 
 
-            })
-            .ConfigureAppConfiguration((host, b) =>
-            {
-                
             });
            
 
