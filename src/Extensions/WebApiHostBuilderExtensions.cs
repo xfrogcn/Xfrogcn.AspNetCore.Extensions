@@ -1,19 +1,12 @@
-﻿using System;
-using System.IO;
-using System.IO.Compression;
-using System.Text;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-using Serilog.Extensions.Logging;
-using Serilog.Sinks.File.Archive;
+using System;
+using System.Text;
 using Xfrogcn.AspNetCore.Extensions;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Microsoft.AspNetCore.Hosting
 {
@@ -132,7 +125,7 @@ namespace Microsoft.AspNetCore.Hosting
                     });
                 }
 
-
+                
                 collection.AddExtensions();
                 // 默认从配置的_Clients节点获取客户端列表（以客户端名称为key，下配置clientId,clientSecret)
                 collection.AddClientTokenProvider(context.Configuration);
@@ -149,12 +142,11 @@ namespace Microsoft.AspNetCore.Hosting
                     sb.Append(h);
                 }
 
-
                 InnerLogger.Information($"初始化完成，系统日志级别：{config.SystemLogLevel}, 应用日志级别：{config.AppLogLevel}, EF Core Command日志级别：{config.EFCoreCommandLevel} 是否开启控制台日志：{config.ConsoleLog}, 监听端口：{config.Port},日志保留天数：{config.MaxLogDays} 记录以下HTTP请求头：{sb.ToString()} ");
-
 
             });
            
+
 
             return builder;
         }

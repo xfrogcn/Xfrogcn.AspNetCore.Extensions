@@ -27,7 +27,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             = new Dictionary<LogLevel, Action<ILogger, string, string, string, string, Exception>>();
         private static Dictionary<LogLevel, Action<ILogger, string, string, int?, string, Exception>> _responseLogMap
             = new Dictionary<LogLevel, Action<ILogger, string, string, int?, string, Exception>>();
-        
+
         private static readonly Action<ILogger, string, string, int?, double, Exception> _costLog
             = LoggerMessage.Define<string, string, int?, double>(LogLevel.Debug, requestCostEventId, "请求耗时: {method} {url} {status} {time}");
         private static readonly Action<ILogger, string, string, double, double, double, double, Exception> _costLongLog
@@ -101,7 +101,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             {
                 scope = logger.BeginScope(scopeItems);
             }
-           
+
             string url = context.Request.Path + "?" + context.Request.QueryString.Value;
 
             LogLevel? logLevel = LogLevelConverter.Converter(_config.RequestLogLevel);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -12,7 +13,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 {
     public static class SerilogServiceCollectionExtensions
     {
-        public static IServiceCollection AddDefaultSerilog(this IServiceCollection serviceDescriptors, WebApiConfig apiConfig=null, Action<LoggerConfiguration> configureLogger = null, bool preserveStaticLogger = false, bool writeToProviders = false)
+        public static IServiceCollection AddDefaultSerilog(this IServiceCollection serviceDescriptors, WebApiConfig apiConfig=null, Action<LoggerConfiguration> configureLogger = null, bool preserveStaticLogger = false, bool writeToProviders = true)
         {
             var loggerConfiguration = new LoggerConfiguration();
 
@@ -20,6 +21,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             if (writeToProviders)
             {
                 loggerProviders = new LoggerProviderCollection();
+
                 loggerConfiguration.WriteTo.Providers(loggerProviders);
             }
 
@@ -38,6 +40,14 @@ namespace Xfrogcn.AspNetCore.Extensions
             {
                 Log.Logger = logger;
             }
+
+            // 去除内置的LoggerProvider
+            var removeProviders = serviceDescriptors.Where(x => x.ServiceType == typeof( ILoggerProvider)).ToList();
+            removeProviders.ForEach(p =>
+            {
+                serviceDescriptors.Remove(p);
+            });
+
 
             serviceDescriptors.AddSingleton<ILoggerFactory>(services =>
             {
@@ -123,14 +133,14 @@ namespace Xfrogcn.AspNetCore.Extensions
                 };
                 loggerConfiguration = loggerConfiguration
                     .WriteTo.Map<string>(keySelector, (path, lc) => {
-                        lc.File(
+                        lc.Async(lc => lc.File(
                              path,
                              rollingInterval: RollingInterval.Infinite,
                              rollOnFileSizeLimit: true,
                              fileSizeLimitBytes: apiConfig.MaxLogFileSize,
                              retainedFileCountLimit: 128,
                              hooks: archiveHooks,
-                             outputTemplate: template);
+                             outputTemplate: template));
                     });
             }
 

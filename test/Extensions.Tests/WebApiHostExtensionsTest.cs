@@ -1,14 +1,12 @@
-﻿using System;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
-using Xunit;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Serilog.Context;
-using Serilog.Events;
+using Xunit;
 
 namespace Extensions.Tests
 {
@@ -20,27 +18,30 @@ namespace Extensions.Tests
         {
             var host = WebHost.CreateDefaultBuilder()
                 .UseExtensions(null)
-                .UseStartup<Startup>()
                 .ConfigureLogging(logBuilder =>
                 {
-                    
+                    logBuilder.AddTestLogger();
                 })
+                .UseStartup<Startup>()
                 .Build();
 
             var logger = host.Services.GetRequiredService<ILogger<WebApiHostExtensionsTest>>();
+            int count = 10;
             using (LogContext.PushProperty("aaa", "BBB"))
             {
                 string log = new string('a', 1024 * 1024);
+
                 using (var scope = logger.BeginScope("this is a {scope}", "scope"))
                 {
-                    for (int i = 0; i < 110; i++)
+                    for (int i = 0; i < count; i++)
                     {
                         logger.LogInformation(log);
                     }
                 }
             }
-        
-            
+
+            var logContent = host.Services.GetTestLogContent();
+            Assert.Equal(count, logContent.LogContents.Count);
         }
     }
 
