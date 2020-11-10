@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Extensions.Logging;
 using Serilog.Sinks.File.Archive;
-using Serilog.Sinks.Map;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {
@@ -61,13 +60,13 @@ namespace Xfrogcn.AspNetCore.Extensions
         {
             apiConfig = apiConfig ?? new WebApiConfig();
 
-            loggerConfiguration.MinimumLevel.Is(apiConfig.AppLogLevel)
-                .MinimumLevel.Override("Microsoft", apiConfig.SystemLogLevel)
-                .MinimumLevel.Override("System", apiConfig.SystemLogLevel)
-                .MinimumLevel.Override("Microsoft.AspNetCore", apiConfig.AppLogLevel)
-                .MinimumLevel.Override("Microsoft.Hosting", apiConfig.AppLogLevel)
-                .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", apiConfig.EFCoreCommandLevel)
-                .MinimumLevel.Override("System.Net.Http.HttpClient", apiConfig.AppLogLevel)
+            loggerConfiguration.MinimumLevel.ControlledBy(apiConfig.InnerSerilogLevels.AppLogLevel)
+                .MinimumLevel.Override("Microsoft", apiConfig.InnerSerilogLevels.SystemLogLevel)
+                .MinimumLevel.Override("System", apiConfig.InnerSerilogLevels.SystemLogLevel)
+                .MinimumLevel.Override("Microsoft.AspNetCore", apiConfig.InnerSerilogLevels.AppLogLevel)
+                .MinimumLevel.Override("Microsoft.Hosting", apiConfig.InnerSerilogLevels.AppLogLevel)
+                .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", apiConfig.InnerSerilogLevels.EFCoreCommandLevel)
+                .MinimumLevel.Override("System.Net.Http.HttpClient", apiConfig.InnerSerilogLevels.AppLogLevel)
                 .Destructure.ToMaximumStringLength(apiConfig.MaxLogLength);
 
             loggerConfiguration = loggerConfiguration.Enrich.FromLogContext();

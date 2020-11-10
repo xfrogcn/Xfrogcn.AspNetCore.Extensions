@@ -1,25 +1,78 @@
 ﻿using System.Collections.Generic;
+using Serilog.Core;
 using Serilog.Events;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {
     public class WebApiConfig
     {
+        internal class SerilogLevels
+        {
+            public LoggingLevelSwitch SystemLogLevel { get;  }
+
+            public LoggingLevelSwitch AppLogLevel { get; }
+
+            public LoggingLevelSwitch EFCoreCommandLevel { get; }
+
+
+            public SerilogLevels()
+            {
+                SystemLogLevel = new LoggingLevelSwitch();
+                AppLogLevel = new LoggingLevelSwitch();
+                EFCoreCommandLevel = new LoggingLevelSwitch();
+            }
+        }
+
+        internal SerilogLevels InnerSerilogLevels { get; } = new SerilogLevels();
+
+        /// <summary>
+        /// 是否启用Serilog
+        /// </summary>
         public bool EnableSerilog { get; set; }
         /// <summary>
         /// 系统日志级别
         /// </summary>
-        public LogEventLevel SystemLogLevel { get; set; }
+        public LogEventLevel SystemLogLevel
+        {
+            get
+            {
+                return InnerSerilogLevels.SystemLogLevel.MinimumLevel;
+            }
+            set
+            {
+                InnerSerilogLevels.SystemLogLevel.MinimumLevel = value;
+            }
+        }
 
         /// <summary>
         /// 全局日志级别
         /// </summary>
-        public LogEventLevel AppLogLevel { get; set; }
+        public LogEventLevel AppLogLevel
+        {
+            get
+            {
+                return InnerSerilogLevels.AppLogLevel.MinimumLevel;
+            }
+            set
+            {
+                InnerSerilogLevels.AppLogLevel.MinimumLevel = value;
+            }
+        }
 
         /// <summary>
         /// EF Core Command日志记录级别
         /// </summary>
-        public LogEventLevel EFCoreCommandLevel { get; set; }
+        public LogEventLevel EFCoreCommandLevel
+        {
+            get
+            {
+                return InnerSerilogLevels.EFCoreCommandLevel.MinimumLevel;
+            }
+            set
+            {
+                InnerSerilogLevels.EFCoreCommandLevel.MinimumLevel = value;
+            }
+        }
 
         /// <summary>
         /// 请求日志级别
@@ -51,18 +104,31 @@ namespace Xfrogcn.AspNetCore.Extensions
         /// 日志最大长度
         /// </summary>
         public int MaxLogLength { get; set; }
-        /// <summary>
-        /// 是否忽略长日志, 默认忽略，除非设置了IGNORE_LONG_LOG
-        /// </summary>
-        //public bool IgnoreLongLog{get;set;}
 
+        /// <summary>
+        /// 日志路径模版
+        /// </summary>
         public string LogPathTemplate { get; set; }
 
+        /// <summary>
+        /// 日志路径
+        /// </summary>
         public string LogPath { get; set; }
 
+        /// <summary>
+        /// 日志文件最大容量
+        /// </summary>
         public long MaxLogFileSize { get; set; }
 
+        /// <summary>
+        /// 日志模版
+        /// </summary>
         public string LogTemplate { get; set; }
+
+        /// <summary>
+        /// 日志最长保留天数
+        /// </summary>
+        public int MaxLogDays { get; set; }
 
         public WebApiConfig()
         {
