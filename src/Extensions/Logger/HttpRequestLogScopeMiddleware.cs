@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -16,6 +17,54 @@ namespace Xfrogcn.AspNetCore.Extensions
 
         private JsonHelper _jsonHelper;
 
+        private static readonly EventId requestEventId = new EventId(100, "ReceiveRequest");
+        private static readonly EventId responseEventId = new EventId(101, "SendResponse");
+        private static readonly EventId requestErrorEventId = new EventId(102, "RequestError");
+        private static readonly EventId requestWarningEventId = new EventId(103, "RequestWarning");
+        private static readonly EventId requestCostEventId = new EventId(104, "RequestCost");
+
+        private static Dictionary<LogLevel, Action<ILogger, string, string, string, string, Exception>> _requestLogMap
+            = new Dictionary<LogLevel, Action<ILogger, string, string, string, string, Exception>>();
+        private static Dictionary<LogLevel, Action<ILogger, string, string, int?, string, Exception>> _responseLogMap
+            = new Dictionary<LogLevel, Action<ILogger, string, string, int?, string, Exception>>();
+        
+        private static readonly Action<ILogger, string, string, int?, double, Exception> _costLog
+            = LoggerMessage.Define<string, string, int?, double>(LogLevel.Debug, requestCostEventId, "请求耗时: {method} {url} {status} {time}");
+        private static readonly Action<ILogger, string, string, double, double, double, double, Exception> _costLongLog
+            = LoggerMessage.Define<string, string, double, double, double, double>(LogLevel.Warning, requestWarningEventId, "请求耗时过长：{mtehod} {url} {t1}ms {t2}ms {t3}ms {t4}ms");
+        private static readonly Action<ILogger, string, Exception> _errorLog
+            = LoggerMessage.Define<string>(LogLevel.Error, requestErrorEventId, "请求日志记录异常：{msg}");
+
+        static HttpRequestLogScopeMiddleware()
+        {
+            _responseLogMap.Add(LogLevel.Trace, getResponseLog(LogLevel.Trace));
+            _responseLogMap.Add(LogLevel.Trace, getResponseLog(LogLevel.Debug));
+            _responseLogMap.Add(LogLevel.Trace, getResponseLog(LogLevel.Information));
+            _responseLogMap.Add(LogLevel.Trace, getResponseLog(LogLevel.Warning));
+            _responseLogMap.Add(LogLevel.Trace, getResponseLog(LogLevel.Error));
+            _responseLogMap.Add(LogLevel.Trace, getResponseLog(LogLevel.Critical));
+
+            _requestLogMap.Add(LogLevel.Trace, getRequestLog(LogLevel.Trace));
+            _requestLogMap.Add(LogLevel.Trace, getRequestLog(LogLevel.Debug));
+            _requestLogMap.Add(LogLevel.Trace, getRequestLog(LogLevel.Information));
+            _requestLogMap.Add(LogLevel.Trace, getRequestLog(LogLevel.Warning));
+            _requestLogMap.Add(LogLevel.Trace, getRequestLog(LogLevel.Error));
+            _requestLogMap.Add(LogLevel.Trace, getRequestLog(LogLevel.Critical));
+        }
+
+
+        private static Action<ILogger, string, string, int?, string, Exception> getResponseLog(LogLevel logLevel)
+        {
+            return LoggerMessage.Define<string, string, int?, string>(
+                logLevel, responseEventId, "请求应答：{method} {url} {status} \n {bodyString} ");
+        }
+
+        private static Action<ILogger, string, string, string, string, Exception> getRequestLog(LogLevel logLevel)
+        {
+            return LoggerMessage.Define<string, string, string, string>(
+                logLevel, responseEventId, "请求：{method} {url} {headers} \n {bodyString} ");
+        }
+
         public HttpRequestLogScopeMiddleware(ILoggerFactory loggerFactory, WebApiConfig config, JsonHelper jsonHelper)
         {
             _loggerFactory = loggerFactory;
@@ -25,8 +74,6 @@ namespace Xfrogcn.AspNetCore.Extensions
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-
-
             Stopwatch sw = new Stopwatch();
             sw.Start();
             DateTime d1 = DateTime.Now;
@@ -54,7 +101,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             {
                 scope = logger.BeginScope(scopeItems);
             }
-
+           
             string url = context.Request.Path + "?" + context.Request.QueryString.Value;
 
             LogLevel? logLevel = LogLevelConverter.Converter(_config.RequestLogLevel);
@@ -65,16 +112,15 @@ namespace Xfrogcn.AspNetCore.Extensions
                 try
                 {
                     context.Request.EnableBuffering();
-                    //  context.Request.EnableRewind();
                     StreamReader reader = new StreamReader(context.Request.Body);
                     string bodyString = await reader.ReadToEndAsync();
-                    logger.Log(logLevel.Value, $"请求：{context.Request.Method} {url} \n { _jsonHelper.ToJson(context.Request.Headers) } \n {bodyString} ");
+                    _requestLogMap[logLevel.Value](logger, context.Request.Method, url, _jsonHelper.ToJson(context.Request.Headers), bodyString, null);
                     context.Request.Body.Position = 0;
                 }
                 catch (Exception e)
                 {
                     context.Request.Body.Position = 0;
-                    logger.LogError(e, "记录请求日志异常");
+                    _errorLog(logger, "请求日志", e);
                 }
 
             }
@@ -111,55 +157,43 @@ namespace Xfrogcn.AspNetCore.Extensions
                             StreamReader reader = new StreamReader(context.Response.Body);
                             bodyString = await reader.ReadToEndAsync();
                         }
-                        logger.Log(logLevel.Value, $"请求应答：{ context.Response?.StatusCode} {context.Request.Method} {url} \n {bodyString} ");
-                        //logger.Log(logLevel.Value, $"请求应答：{ context.Response?.StatusCode} {context.Request.Method} {url} \n { _jsonHelper.ToJson(context.Response.Headers) } \n {bodyString} ");
+                        _responseLogMap[logLevel.Value](logger, context.Request.Method, url, context.Response?.StatusCode, bodyString, null);
                         tempResponseBodyStream.Seek(0, SeekOrigin.Begin);
                     }
                     catch (Exception e)
                     {
                         context.Request.Body.Position = 0;
-                        logger.LogError(e, "记录请求应答日志异常");
+                        _errorLog(logger, "应答日志", e);
                     }
                     finally
                     {
                         await tempResponseBodyStream.CopyToAsync(bodyStream);
                     }
                 }
-                //else if (context.Response.ContentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                //        || context.Response.ContentType == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                //        || context.Response.ContentType == "application/vnd.ms-excel"
-                //        || context.Response.ContentType == "application/msword")
                 else
                 {
                     tempResponseBodyStream.Seek(0, SeekOrigin.Begin);
                     await tempResponseBodyStream.CopyToAsync(bodyStream);
                 }
-                //else
-                //{
-                //    var buffer = tempResponseBodyStream.GetBuffer();
-                //    var len = buffer.Length;
-                //    if (len > 0)
-                //    {
-                //        var contentLen = len - 1;
-                //        for (; contentLen >= 0; contentLen--)
-                //        {
-                //            if (buffer[contentLen] > 0) break;
-                //        }
-                //        await bodyStream.WriteAsync(buffer, 0, contentLen + 1);
-                //    }
-                //}
             }
 
             sw.Stop();
 
             DateTime d5 = DateTime.Now;
 
-
-            logger.LogDebug($"请求耗时：{sw.ElapsedMilliseconds}ms {context.Response?.StatusCode} {context.Request.Method} {url}");
+            _costLog(logger, context.Request.Method, url, context.Response?.StatusCode, sw.ElapsedMilliseconds, null);
 
             if (sw.ElapsedMilliseconds >= 2000)
             {
-                logger.LogWarning($"请求耗时过长：{(d2 - d1).TotalMilliseconds}ms {(d3 - d2).TotalMilliseconds}ms {(d4 - d3).TotalMilliseconds}ms {(d5 - d4).TotalMilliseconds}ms ");
+                _costLongLog(
+                    logger,
+                    context.Request.Method,
+                    context.Request.Path,
+                    (d2 - d1).TotalMilliseconds,
+                    (d3 - d2).TotalMilliseconds,
+                    (d4 - d3).TotalMilliseconds,
+                    (d5 - d4).TotalMilliseconds,
+                    null);
             }
 
             scope?.Dispose();
