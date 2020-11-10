@@ -11,7 +11,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{3866AE47-F
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Extensions.Tests", "test\Extensions.Tests\Extensions.Tests.csproj", "{7199E91A-B68C-4715-BD03-01885071C15E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xfrogcn.AspNetCore.Extensions.RedisQueueProducer", "src\Extensions.RedisQueueProducer\Xfrogcn.AspNetCore.Extensions.RedisQueueProducer.csproj", "{45718165-C0AD-4D7B-A513-63F155892316}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xfrogcn.AspNetCore.Extensions.RedisQueueProducer", "src\Extensions.RedisQueueProducer\Xfrogcn.AspNetCore.Extensions.RedisQueueProducer.csproj", "{45718165-C0AD-4D7B-A513-63F155892316}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DCBB57DB-83B9-4A7D-872E-DCA6B44A9C61}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

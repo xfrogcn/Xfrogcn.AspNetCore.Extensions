@@ -1,0 +1,21 @@
+<Project>
+  <PropertyGroup>
+    <PackageVersion>1.0.0-beta2020111001</PackageVersion>
+    <Authors>王海波</Authors>
+    <Copyright>王海波</Copyright>
+    <RepositoryUrl>https://github.com/xfrogcn/pluginfactory</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Product>Xfrogcn AspNetCore Extensions</Product>
+
+    <!-- The SPDX name for the source license. See https://spdx.org/licenses/. -->
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+   
+    <!-- Contact email address for NuGet packages and Linux installers. -->
+    <MaintainerEmail>xfrogcn@163.com</MaintainerEmail>
+
+    <IncludeSymbols>true</IncludeSymbols>
+  </PropertyGroup>
+</Project>
