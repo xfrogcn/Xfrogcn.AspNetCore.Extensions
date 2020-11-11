@@ -2,6 +2,8 @@
 
 ASP.NET Core扩展库是针对.NET Core常用功能的扩展，包含日志、Token提供器、并行队列处理、HttpClient扩展、轻量级的DTO类型映射等功能。
 
+## 日志扩展
+
 ## 轻量级实体映射
 
 在分层设计模式中，各层之间的数据通常通过数据传输对象(DTO)来进行数据的传递，而大多数情况下，各层数据的定义结构大同小异，如何在这些定义结构中相互转换，之前我们通过使用[AutoMapper](http://automapper.org/)库，但**AutoMapper**功能庞大，在很多场景下，可能我们只需要一些基础功能，那么此时你可以选择扩展库中的轻量级AutoMapper实现。
@@ -25,6 +27,7 @@ ASP.NET Core扩展库是针对.NET Core常用功能的扩展，包含日志、To
   
 
 ## HttpClient扩展
+.NET Core扩展库中通过HttpFactory及HttpClient来执行HTTP请求调用，HttpClient扩展在此基础上进行了更多功能的扩展，增加易用性。
 
 ## 并行队列处理
 
