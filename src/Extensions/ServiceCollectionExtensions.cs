@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.DependencyInjection
             serviceDescriptors.TryAddTransient<HttpRequestLogScopeMiddleware>();
             serviceDescriptors.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             serviceDescriptors.AddTransient<IAutoRetry, AutoRetry>();
-
+            serviceDescriptors.TryAddSingleton<WebApiConfigMonitor>();
 
             return serviceDescriptors;
         }

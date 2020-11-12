@@ -102,6 +102,10 @@ namespace Xfrogcn.AspNetCore.Extensions
             {
                 loggerConfiguration = loggerConfiguration.WriteTo.Console();
             }
+            else
+            {
+                loggerConfiguration = loggerConfiguration.WriteTo.Console(Serilog.Events.LogEventLevel.Warning);
+            }
             if (apiConfig.FileLog)
             {
 

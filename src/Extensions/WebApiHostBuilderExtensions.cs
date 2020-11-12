@@ -17,78 +17,76 @@ namespace Microsoft.AspNetCore.Hosting
         public static Logger InnerLogger = null;
 
 
-        private static void parseConfig(IConfiguration configuration)
-        {
-            configuration.Bind(config);
-
-            string consoleLog = configuration["CONSOLE_LOG"];
-            string systemLoglevel = configuration["SYSTEM_LOG_LEVEL"];
-            string appLoglevel = configuration["APP_LOG_LEVEL"];
-            string efLogLevel = configuration["EFQUERY_LOG_LEVEL"];
-            string port = configuration["APP_PORT"];
-            string requestLogLevel = configuration["REQUEST_LOG_LEVEL"];
-            string maxLogLenght = configuration["MAX_LOG_LENGTH"];
+        //private static void parseConfig(IConfiguration configuration)
+        //{
+        //    string consoleLog = configuration["CONSOLE_LOG"];
+        //    string systemLoglevel = configuration["SYSTEM_LOG_LEVEL"];
+        //    string appLoglevel = configuration["APP_LOG_LEVEL"];
+        //    string efLogLevel = configuration["EFQUERY_LOG_LEVEL"];
+        //    string port = configuration["APP_PORT"];
+        //    string requestLogLevel = configuration["REQUEST_LOG_LEVEL"];
+        //    string maxLogLenght = configuration["MAX_LOG_LENGTH"];
           
-            if (!String.IsNullOrWhiteSpace(appLoglevel))
-            {
-                LogEventLevel appLevel = LogEventLevel.Debug;
-                if (Enum.TryParse<LogEventLevel>(appLoglevel, out appLevel))
-                {
-                    config.AppLogLevel = appLevel;
-                }
-            }
-            if (!String.IsNullOrWhiteSpace(systemLoglevel))
-            {
-                LogEventLevel sysLevel = LogEventLevel.Warning;
-                if (Enum.TryParse<LogEventLevel>(systemLoglevel, out sysLevel))
-                {
-                    config.SystemLogLevel = sysLevel;
-                }
-            }
-            if (!String.IsNullOrWhiteSpace(efLogLevel))
-            {
-                LogEventLevel efLevel = LogEventLevel.Debug;
-                if (Enum.TryParse<LogEventLevel>(efLogLevel, out efLevel))
-                {
-                    config.EFCoreCommandLevel = efLevel;
-                }
-            }
-            if (!String.IsNullOrEmpty(requestLogLevel))
-            {
-                LogEventLevel rLevel = LogEventLevel.Verbose;
-                if (Enum.TryParse<LogEventLevel>(efLogLevel, out rLevel))
-                {
-                    config.RequestLogLevel = rLevel;
-                }
-                else
-                {
-                    config.RequestLogLevel = null;
-                }
-            }
-            if (!String.IsNullOrEmpty(maxLogLenght))
-            {
-                int ml = 0;
-                if (int.TryParse(maxLogLenght, out ml) && ml > 0)
-                {
-                    config.MaxLogLength = ml;
-                }
-            }
+        //    if (!String.IsNullOrWhiteSpace(appLoglevel))
+        //    {
+        //        LogEventLevel appLevel = LogEventLevel.Debug;
+        //        if (Enum.TryParse<LogEventLevel>(appLoglevel, out appLevel))
+        //        {
+        //            config.AppLogLevel = appLevel;
+        //        }
+        //    }
+        //    if (!String.IsNullOrWhiteSpace(systemLoglevel))
+        //    {
+        //        LogEventLevel sysLevel = LogEventLevel.Warning;
+        //        if (Enum.TryParse<LogEventLevel>(systemLoglevel, out sysLevel))
+        //        {
+        //            config.SystemLogLevel = sysLevel;
+        //        }
+        //    }
+        //    if (!String.IsNullOrWhiteSpace(efLogLevel))
+        //    {
+        //        LogEventLevel efLevel = LogEventLevel.Debug;
+        //        if (Enum.TryParse<LogEventLevel>(efLogLevel, out efLevel))
+        //        {
+        //            config.EFCoreCommandLevel = efLevel;
+        //        }
+        //    }
+        //    if (!String.IsNullOrEmpty(requestLogLevel))
+        //    {
+        //        LogEventLevel rLevel = LogEventLevel.Verbose;
+        //        if (Enum.TryParse<LogEventLevel>(efLogLevel, out rLevel))
+        //        {
+        //            config.RequestLogLevel = rLevel;
+        //        }
+        //        else
+        //        {
+        //            config.RequestLogLevel = null;
+        //        }
+        //    }
+        //    if (!String.IsNullOrEmpty(maxLogLenght))
+        //    {
+        //        int ml = 0;
+        //        if (int.TryParse(maxLogLenght, out ml) && ml > 0)
+        //        {
+        //            config.MaxLogLength = ml;
+        //        }
+        //    }
            
 
-            config.ConsoleLog = convertConfigBoolValue(consoleLog, config.ConsoleLog).Value;
+        //    config.ConsoleLog = convertConfigBoolValue(consoleLog, config.ConsoleLog).Value;
 
 
-            if (!String.IsNullOrEmpty(port))
-            {
-                int p = 0;
-                if (int.TryParse(port, out p))
-                {
-                    config.Port = p;
-                }
-            }
+        //    if (!String.IsNullOrEmpty(port))
+        //    {
+        //        int p = 0;
+        //        if (int.TryParse(port, out p))
+        //        {
+        //            config.Port = p;
+        //        }
+        //    }
 
 
-        }
+        //}
 
         public static IWebHostBuilder UseExtensions(this IWebHostBuilder builder, string[] args, Action<WebApiConfig> configAction = null, Action<WebHostBuilderContext, LoggerConfiguration> configureLogger = null)
         {
@@ -104,12 +102,17 @@ namespace Microsoft.AspNetCore.Hosting
             var _logger = tempLogger.CreateLogger();
             InnerLogger = _logger;
 
+            
 
             // 注意 Host的初始化流程 先以此执行 ConfigureAppConfiguration， 最后执行 ConfigureServices
             builder = builder.ConfigureServices((context, collection) =>
             {
-                parseConfig(context.Configuration);
+                collection.Configure<WebApiConfig>(context.Configuration);
+
+              //  parseConfig(context.Configuration);
                 configAction?.Invoke(config);
+            
+                
 
                 if (config.Port > 0)
                 {

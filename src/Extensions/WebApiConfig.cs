@@ -84,7 +84,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         /// <summary>
         /// 日志是否输出到控制台
         /// </summary>
-        public bool ConsoleLog { get; set; }
+        public bool ConsoleLog { get; set; } 
 
         /// <summary>
         /// 文件日志
@@ -138,8 +138,8 @@ namespace Xfrogcn.AspNetCore.Extensions
             //默认记录EFCore查询语句
             EFCoreCommandLevel = LogEventLevel.Debug;
             RequestLogLevel = LogEventLevel.Verbose;
-            EnableRequestLog = true;
-            ConsoleLog = true;
+            EnableRequestLog = false;
+            ConsoleLog = false;
             FileLog = true;
             HttpHeaders = new List<string>() { "x-request-id" };
             MaxLogLength = 1024 * 8; //8kb

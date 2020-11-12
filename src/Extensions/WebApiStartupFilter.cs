@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {
@@ -11,6 +12,9 @@ namespace Xfrogcn.AspNetCore.Extensions
             Action<IApplicationBuilder> builder = (b) =>
             {
                 b.UseMiddleware<HttpRequestLogScopeMiddleware>();
+                // 此处实例化WebApiStartFilter
+                var monitor = b.ApplicationServices.GetRequiredService<WebApiConfigMonitor>();
+                monitor.Init();
                 next(b);
             };
 
