@@ -38,18 +38,18 @@ namespace Xfrogcn.AspNetCore.Extensions
         static HttpRequestLogScopeMiddleware()
         {
             _responseLogMap.Add(LogLevel.Trace, getResponseLog(LogLevel.Trace));
-            _responseLogMap.Add(LogLevel.Trace, getResponseLog(LogLevel.Debug));
-            _responseLogMap.Add(LogLevel.Trace, getResponseLog(LogLevel.Information));
-            _responseLogMap.Add(LogLevel.Trace, getResponseLog(LogLevel.Warning));
-            _responseLogMap.Add(LogLevel.Trace, getResponseLog(LogLevel.Error));
-            _responseLogMap.Add(LogLevel.Trace, getResponseLog(LogLevel.Critical));
+            _responseLogMap.Add(LogLevel.Debug, getResponseLog(LogLevel.Debug));
+            _responseLogMap.Add(LogLevel.Information, getResponseLog(LogLevel.Information));
+            _responseLogMap.Add(LogLevel.Warning, getResponseLog(LogLevel.Warning));
+            _responseLogMap.Add(LogLevel.Error, getResponseLog(LogLevel.Error));
+            _responseLogMap.Add(LogLevel.Critical, getResponseLog(LogLevel.Critical));
 
             _requestLogMap.Add(LogLevel.Trace, getRequestLog(LogLevel.Trace));
-            _requestLogMap.Add(LogLevel.Trace, getRequestLog(LogLevel.Debug));
-            _requestLogMap.Add(LogLevel.Trace, getRequestLog(LogLevel.Information));
-            _requestLogMap.Add(LogLevel.Trace, getRequestLog(LogLevel.Warning));
-            _requestLogMap.Add(LogLevel.Trace, getRequestLog(LogLevel.Error));
-            _requestLogMap.Add(LogLevel.Trace, getRequestLog(LogLevel.Critical));
+            _requestLogMap.Add(LogLevel.Debug, getRequestLog(LogLevel.Debug));
+            _requestLogMap.Add(LogLevel.Information, getRequestLog(LogLevel.Information));
+            _requestLogMap.Add(LogLevel.Warning, getRequestLog(LogLevel.Warning));
+            _requestLogMap.Add(LogLevel.Error, getRequestLog(LogLevel.Error));
+            _requestLogMap.Add(LogLevel.Critical, getRequestLog(LogLevel.Critical));
         }
 
 
