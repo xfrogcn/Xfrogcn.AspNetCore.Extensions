@@ -39,7 +39,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
         private void onConfigChanged(WebApiConfig config, string name)
         {
-            WebApiHostBuilderExtensions._configAction?.Invoke(config);
+            ServiceCollectionExtensions._configAction?.Invoke(config);
             WebApiConfig old = _serviceProvider.GetRequiredService<WebApiConfig>();
             if (old != config)
             {

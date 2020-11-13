@@ -1,28 +1,21 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using System;
 using System.Text;
 using Xfrogcn.AspNetCore.Extensions;
-using Microsoft.AspNetCore.Hosting;
 
 namespace Microsoft.AspNetCore.Hosting
 {
     public static class WebApiHostBuilderExtensions
     {
-        internal static WebApiConfig config = new WebApiConfig();
-
         public static Logger InnerLogger = null;
 
-        internal static Action<WebApiConfig> _configAction = null;
 
-        public static IWebHostBuilder UseExtensions(this IWebHostBuilder builder, string[] args, Action<WebApiConfig> configAction = null, Action<WebHostBuilderContext, LoggerConfiguration> configureLogger = null)
+        public static IWebHostBuilder UseExtensions(this IWebHostBuilder builder, string[] args, Action<WebApiConfig> configAction = null, Action<LoggerConfiguration> configureLogger = null)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
-
-            _configAction = configAction;
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
@@ -38,33 +31,9 @@ namespace Microsoft.AspNetCore.Hosting
             // 注意 Host的初始化流程 先以此执行 ConfigureAppConfiguration， 最后执行 ConfigureServices
             builder = builder.ConfigureServices((context, collection) =>
             {
-                collection.Configure<WebApiConfig>(context.Configuration);
-                context.Configuration.Bind(config);
-                configAction?.Invoke(config);
-            
-                
+                collection.AddExtensions(context.Configuration, configAction, configureLogger);
 
-                if (config.Port > 0)
-                {
-                    builder.UseSetting("URLS", $"http://*:{config.Port}");
-                }
-
-                if (config.EnableSerilog)
-                {
-                    collection.AddDefaultSerilog(config, (logConfig) =>
-                    {
-                        configureLogger?.Invoke(context, logConfig);
-                        logConfig.ReadFrom.Configuration(context.Configuration);
-                    });
-                }
-
-                
-                collection.AddExtensions();
-                // 默认从配置的_Clients节点获取客户端列表（以客户端名称为key，下配置clientId,clientSecret)
-                collection.AddClientTokenProvider(context.Configuration);
-                collection.AddSingleton<WebApiConfig>(config);
-                collection.AddSingleton<IStartupFilter, WebApiStartupFilter>();
-
+                var config = ServiceCollectionExtensions.config;
                 StringBuilder sb = new StringBuilder();
                 foreach (string h in config.HttpHeaders)
                 {
@@ -99,19 +68,5 @@ namespace Microsoft.AspNetCore.Hosting
             }
         }
 
-        private static bool? convertConfigBoolValue(string val, bool? defValue)
-        {
-            bool? boolVal = defValue;
-            if (val == "on" || val == "1" || val == "yes" || val == "true")
-            {
-                boolVal = true;
-            }
-            else if (val == "no" || val == "0" || val == "off" || val == "false")
-            {
-                boolVal = false;
-            }
-
-            return boolVal;
-        }
     }
 }
