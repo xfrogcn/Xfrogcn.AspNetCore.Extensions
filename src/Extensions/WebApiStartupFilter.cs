@@ -12,9 +12,6 @@ namespace Xfrogcn.AspNetCore.Extensions
             Action<IApplicationBuilder> builder = (b) =>
             {
                 b.UseMiddleware<HttpRequestLogScopeMiddleware>();
-                // 此处实例化WebApiStartFilter
-                var monitor = b.ApplicationServices.GetRequiredService<WebApiConfigMonitor>();
-                monitor.Init();
                 next(b);
             };
 

@@ -4,8 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace Xfrogcn.AspNetCore.Extensions
@@ -14,16 +17,35 @@ namespace Xfrogcn.AspNetCore.Extensions
     {
         readonly WebApiConfig _config;
         System.Threading.Timer _timer;
+        readonly IOptionsMonitor<WebApiConfig> _monitor;
+        readonly IServiceProvider _serviceProvider;
         readonly ILogger<ClearLogsHostService> _logger;
 
         readonly string[] logExtensions = new string[] { ".log", ".txt" };
 
         public ClearLogsHostService(
             WebApiConfig config,
+            IOptionsMonitor<WebApiConfig> monitor, 
+            IServiceProvider serviceProvider,
             ILogger<ClearLogsHostService> logger)
         {
+            _monitor = monitor;
+            _serviceProvider = serviceProvider;
             _config = config;
             _logger = logger;
+
+            monitor.OnChange(onConfigChanged);
+        }
+
+        private void onConfigChanged(WebApiConfig config, string name)
+        {
+            WebApiHostBuilderExtensions._configAction?.Invoke(config);
+            WebApiConfig old = _serviceProvider.GetRequiredService<WebApiConfig>();
+            if (old != config)
+            {
+                IMapperProvider mapper = _serviceProvider.GetRequiredService<IMapperProvider>();
+                mapper.CopyTo<WebApiConfig, WebApiConfig>(config, old);
+            }
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -34,7 +56,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                 _timer = null;
             }
 
-            _timer = new Timer(ClearProc, null, TimeSpan.FromHours(1), Timeout.InfiniteTimeSpan);
+            _timer = new Timer(ClearProc, null, TimeSpan.FromSeconds(5), Timeout.InfiniteTimeSpan);
             return Task.CompletedTask;
         }
 
@@ -73,7 +95,8 @@ namespace Xfrogcn.AspNetCore.Extensions
                     FileSystemInfo[] files = item.GetFileSystemInfos("*", SearchOption.TopDirectoryOnly);
                     foreach (var f in files)
                     {
-                        if (logExtensions.Contains(f.Extension, StringComparer.OrdinalIgnoreCase))
+                        if (logExtensions.Contains(f.Extension, StringComparer.OrdinalIgnoreCase) && 
+                            f.LastWriteTimeUtc<= startTime)
                         {
                             string relativePath = Path.GetRelativePath(di.FullName, f.FullName);
                             _logger.LogInformation("删除日志文件：{0}", relativePath);
