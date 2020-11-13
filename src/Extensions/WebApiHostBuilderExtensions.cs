@@ -44,7 +44,16 @@ namespace Microsoft.AspNetCore.Hosting
                     sb.Append(h);
                 }
 
-                InnerLogger.Information($"初始化完成，系统日志级别：{config.SystemLogLevel}, 应用日志级别：{config.AppLogLevel}, EF Core Command日志级别：{config.EFCoreCommandLevel} 是否开启控制台日志：{config.ConsoleLog}, 监听端口：{config.Port},日志保留天数：{config.MaxLogDays} 记录以下HTTP请求头：{sb.ToString()} ");
+                InnerLogger.Information($"初始化完成：\n" +
+                    $"\t系统日志级别：{config.SystemLogLevel}\n" +
+                    $"\t应用日志级别：{config.AppLogLevel}\n" +
+                    $"\tEF Core Command日志级别：{config.EFCoreCommandLevel}\n" +
+                    $"\t是否开启控制台日志：{config.ConsoleLog}\n" +
+                    $"\t服务端请求日志级别：{config.ServerRequestLevel}\n" +
+                    $"\t客户端请求日志级别：{config.ClientRequestLevel}\n" +
+                    $"\t是否开启客户端请求日志：{config.EnableClientRequestLog}\n" +
+                    $"\t日志保留天数：{config.MaxLogDays}\n" +
+                    $"\t记录以下HTTP请求头：{sb.ToString()} ");
 
             });
            

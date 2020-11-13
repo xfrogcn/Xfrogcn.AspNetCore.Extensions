@@ -28,8 +28,6 @@ namespace Xfrogcn.AspNetCore.Extensions
             {
                 var response = await _tokenManager.Execute<HttpResponseMessage>(async (token, setter, checker) =>
                {
-                   //request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
                    await setter.SetTokenAsync(request, token);
                    var response = await base.SendAsync(request, cancellationToken);
                    lastResponse = response;

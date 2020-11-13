@@ -23,10 +23,10 @@ namespace Xfrogcn.AspNetCore.Extensions
         private static readonly EventId requestWarningEventId = new EventId(103, "RequestWarning");
         private static readonly EventId requestCostEventId = new EventId(104, "RequestCost");
 
-        private static Dictionary<LogLevel, Action<ILogger, string, string, string, string, Exception>> _requestLogMap
-            = new Dictionary<LogLevel, Action<ILogger, string, string, string, string, Exception>>();
-        private static Dictionary<LogLevel, Action<ILogger, string, string, int?, string, Exception>> _responseLogMap
-            = new Dictionary<LogLevel, Action<ILogger, string, string, int?, string, Exception>>();
+        private static Action<ILogger, string, string, string, string, Exception> _requestLog
+            = LoggerMessage.Define<string, string, string, string>( LogLevel.Trace, requestEventId, "请求：{method} {url} {headers} \n {bodyString}");
+        private static Action<ILogger, string, string, int?, string, Exception> _responseLog
+            = LoggerMessage.Define<string, string, int?, string>(LogLevel.Trace, responseEventId, "请求应答：{method} {url} {status} \n {bodyString}" );
 
         private static readonly Action<ILogger, string, string, int?, double, Exception> _costLog
             = LoggerMessage.Define<string, string, int?, double>(LogLevel.Debug, requestCostEventId, "请求耗时: {method} {url} {status} {time}");
@@ -34,23 +34,6 @@ namespace Xfrogcn.AspNetCore.Extensions
             = LoggerMessage.Define<string, string, double, double, double, double>(LogLevel.Warning, requestWarningEventId, "请求耗时过长：{mtehod} {url} {t1}ms {t2}ms {t3}ms {t4}ms");
         private static readonly Action<ILogger, string, Exception> _errorLog
             = LoggerMessage.Define<string>(LogLevel.Error, requestErrorEventId, "请求日志记录异常：{msg}");
-
-        static HttpRequestLogScopeMiddleware()
-        {
-            _responseLogMap.Add(LogLevel.Trace, getResponseLog(LogLevel.Trace));
-            _responseLogMap.Add(LogLevel.Debug, getResponseLog(LogLevel.Debug));
-            _responseLogMap.Add(LogLevel.Information, getResponseLog(LogLevel.Information));
-            _responseLogMap.Add(LogLevel.Warning, getResponseLog(LogLevel.Warning));
-            _responseLogMap.Add(LogLevel.Error, getResponseLog(LogLevel.Error));
-            _responseLogMap.Add(LogLevel.Critical, getResponseLog(LogLevel.Critical));
-
-            _requestLogMap.Add(LogLevel.Trace, getRequestLog(LogLevel.Trace));
-            _requestLogMap.Add(LogLevel.Debug, getRequestLog(LogLevel.Debug));
-            _requestLogMap.Add(LogLevel.Information, getRequestLog(LogLevel.Information));
-            _requestLogMap.Add(LogLevel.Warning, getRequestLog(LogLevel.Warning));
-            _requestLogMap.Add(LogLevel.Error, getRequestLog(LogLevel.Error));
-            _requestLogMap.Add(LogLevel.Critical, getRequestLog(LogLevel.Critical));
-        }
 
 
         private static Action<ILogger, string, string, int?, string, Exception> getResponseLog(LogLevel logLevel)
@@ -74,11 +57,11 @@ namespace Xfrogcn.AspNetCore.Extensions
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
+            var logger = _loggerFactory.CreateLogger("ServerRequest.Logger");
+
             Stopwatch sw = new Stopwatch();
             sw.Start();
             DateTime d1 = DateTime.Now;
-
-            var logger = _loggerFactory.CreateLogger<HttpRequestLogScopeMiddleware>();
 
             Dictionary<string, object> scopeItems = new Dictionary<string, object>();
             if (context != null && context.Request != null && context.Request.Headers != null)
@@ -102,11 +85,11 @@ namespace Xfrogcn.AspNetCore.Extensions
                 scope = logger.BeginScope(scopeItems);
             }
 
-            string url = context.Request.Path + "?" + context.Request.QueryString.Value;
+            string url = context.Request.GetAbsoluteUri();
 
-            LogLevel? logLevel = LogLevelConverter.Converter(_config.RequestLogLevel);
+
             //记录请求日志
-            if (_config.RequestLogLevel != null && logger.IsEnabled(logLevel.Value))
+            if (logger.IsEnabled(LogLevel.Trace))
             {
 
                 try
@@ -114,7 +97,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                     context.Request.EnableBuffering();
                     StreamReader reader = new StreamReader(context.Request.Body);
                     string bodyString = await reader.ReadToEndAsync();
-                    _requestLogMap[logLevel.Value](logger, context.Request.Method, url, _jsonHelper.ToJson(context.Request.Headers), bodyString, null);
+                    _requestLog(logger, context.Request.Method, url, _jsonHelper.ToJson(context.Request.Headers), bodyString, null);
                     context.Request.Body.Position = 0;
                 }
                 catch (Exception e)
@@ -122,10 +105,9 @@ namespace Xfrogcn.AspNetCore.Extensions
                     context.Request.Body.Position = 0;
                     _errorLog(logger, "请求日志", e);
                 }
-
             }
 
-            bool logResposne = (_config.RequestLogLevel != null && logger.IsEnabled(logLevel.Value));
+            bool logResposne = logger.IsEnabled(LogLevel.Trace);
             var bodyStream = context.Response.Body;
             MemoryStream tempResponseBodyStream = null;
             if (logResposne)
@@ -135,8 +117,6 @@ namespace Xfrogcn.AspNetCore.Extensions
             }
 
             DateTime d3 = DateTime.Now;
-
-
 
             await next(context);
 
@@ -157,7 +137,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                             StreamReader reader = new StreamReader(context.Response.Body);
                             bodyString = await reader.ReadToEndAsync();
                         }
-                        _responseLogMap[logLevel.Value](logger, context.Request.Method, url, context.Response?.StatusCode, bodyString, null);
+                        _responseLog(logger, context.Request.Method, url, context.Response?.StatusCode, bodyString, null);
                         tempResponseBodyStream.Seek(0, SeekOrigin.Begin);
                     }
                     catch (Exception e)

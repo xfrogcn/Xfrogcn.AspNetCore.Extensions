@@ -41,10 +41,9 @@ namespace Xfrogcn.AspNetCore.Extensions
                 WebApiConfig cfg = _provider.GetRequiredService<WebApiConfig>();
 
                 // 将自定义的LoggingDetailMessageHandler放到首位
-                // 分类名称与内置日志名称保持一致
-                if( cfg!=null && cfg.EnableRequestLog)
+                if( cfg!=null && cfg.EnableClientRequestLog)
                 {
-                    ILogger requestLogger = _loggerFactory.CreateLogger("System.Net.Http.HttpClient.Default.LogicalHandler");
+                    ILogger requestLogger = _loggerFactory.CreateLogger("ClientRequest.Logger");
                     builder.AdditionalHandlers.Insert(0, new LoggingDetailMessageHandler(requestLogger));
                 }
                

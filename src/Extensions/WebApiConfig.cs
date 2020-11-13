@@ -14,12 +14,17 @@ namespace Xfrogcn.AspNetCore.Extensions
 
             public LoggingLevelSwitch EFCoreCommandLevel { get; }
 
+            public LoggingLevelSwitch ServerRequestLevel { get; }
+
+            public LoggingLevelSwitch ClientRequestLevel { get; }
 
             public SerilogLevels()
             {
                 SystemLogLevel = new LoggingLevelSwitch();
                 AppLogLevel = new LoggingLevelSwitch();
                 EFCoreCommandLevel = new LoggingLevelSwitch();
+                ServerRequestLevel = new LoggingLevelSwitch();
+                ClientRequestLevel = new LoggingLevelSwitch();
             }
         }
 
@@ -77,9 +82,34 @@ namespace Xfrogcn.AspNetCore.Extensions
         /// <summary>
         /// 请求日志级别
         /// </summary>
-        public LogEventLevel? RequestLogLevel { get; set; }
+        public LogEventLevel ServerRequestLevel
+        {
+            get
+            {
+                return InnerSerilogLevels.ServerRequestLevel.MinimumLevel;
+            }
+            set
+            {
+                InnerSerilogLevels.ServerRequestLevel.MinimumLevel = value;
+            }
+        }
 
-        public bool EnableRequestLog { get; set; }
+        /// <summary>
+        /// 客户端请求日志级别
+        /// </summary>
+        public LogEventLevel ClientRequestLevel
+        {
+            get
+            {
+                return InnerSerilogLevels.ClientRequestLevel.MinimumLevel;
+            }
+            set
+            {
+                InnerSerilogLevels.ClientRequestLevel.MinimumLevel = value;
+            }
+        }
+
+        public bool EnableClientRequestLog { get; set; }
 
         /// <summary>
         /// 日志是否输出到控制台
@@ -96,10 +126,6 @@ namespace Xfrogcn.AspNetCore.Extensions
         /// </summary>
         public List<string> HttpHeaders { get; set; }
 
-        /// <summary>
-        /// 端口
-        /// </summary>
-        public int Port { get; set; }
         /// <summary>
         /// 日志最大长度
         /// </summary>
@@ -137,8 +163,9 @@ namespace Xfrogcn.AspNetCore.Extensions
             AppLogLevel = LogEventLevel.Verbose;
             //默认记录EFCore查询语句
             EFCoreCommandLevel = LogEventLevel.Debug;
-            RequestLogLevel = LogEventLevel.Verbose;
-            EnableRequestLog = false;
+            ServerRequestLevel = LogEventLevel.Information;
+            ClientRequestLevel = LogEventLevel.Verbose;
+            EnableClientRequestLog = true;
             ConsoleLog = false;
             FileLog = true;
             HttpHeaders = new List<string>() { "x-request-id" };

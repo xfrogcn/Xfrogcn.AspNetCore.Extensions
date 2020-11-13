@@ -17,7 +17,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         private static readonly EventId responseEventId = new EventId(501, "ResponseDetail");
         private static readonly EventId requestErrorEventId = new EventId(505, "RequestError");
         private static readonly Action<ILogger, HttpMethod, Uri, string, Exception> _requestLog = LoggerMessage.Define<HttpMethod, Uri, string>(LogLevel.Trace, requestEventId, "请求方法：{httpMethod}, 请求URI：{uri}, 请求内容：{content}");
-        private static readonly Action<ILogger, HttpMethod, Uri, string, Exception> _requestErrorLog = LoggerMessage.Define<HttpMethod, Uri, string>(LogLevel.Trace, requestErrorEventId, "请求发生异常，请求方法：{httpMethod}, 请求URI：{uri}, 请求内容：{content}");
+        private static readonly Action<ILogger, HttpMethod, Uri, string, Exception> _requestErrorLog = LoggerMessage.Define<HttpMethod, Uri, string>(LogLevel.Error, requestErrorEventId, "请求发生异常，请求方法：{httpMethod}, 请求URI：{uri}, 请求内容：{content}");
         private static readonly Action<ILogger, HttpMethod, Uri, string, Exception> _responseLog = LoggerMessage.Define<HttpMethod, Uri, string>(LogLevel.Trace, responseEventId, "请求方法：{httpMethod}, 请求URI：{uri}, 应答内容：{content}");
        
         public LoggingDetailMessageHandler(ILogger logger)
