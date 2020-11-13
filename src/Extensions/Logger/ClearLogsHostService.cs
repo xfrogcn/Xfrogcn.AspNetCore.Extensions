@@ -113,7 +113,8 @@ namespace Xfrogcn.AspNetCore.Extensions
 
                     // 是否空文件夹
                     int fileCount = item.GetFiles("*", SearchOption.TopDirectoryOnly).Length;
-                    if (fileCount == 0)
+                    int dirCount = item.GetDirectories("*", SearchOption.TopDirectoryOnly).Length;
+                    if (fileCount == 0 && dirCount == 0)
                     {
                         string relativePath = Path.GetRelativePath(di.FullName, item.FullName);
                         try
