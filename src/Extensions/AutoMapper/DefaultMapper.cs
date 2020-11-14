@@ -269,12 +269,61 @@ namespace Xfrogcn.AspNetCore.Extensions
             Type tType = typeof(TTarget);
             List<PropertyInfo> spis = sType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static).ToList();
             List<PropertyInfo> tpis = tType.GetProperties(BindingFlags.Public | BindingFlags.Instance).ToList();
+            // target property --> source property
+            // Dictionary<PropertyInfo, PropertyInfo> propertyMap = new Dictionary<PropertyInfo, PropertyInfo>(tpis.Select(p => new KeyValuePair<PropertyInfo, PropertyInfo>(p, null)));
+
+            Dictionary<PropertyInfo, List<string>> sourceNamesMap
+                = new Dictionary<PropertyInfo, List<string>>(spis.Select(x => new KeyValuePair<PropertyInfo, List<string>>(x, new List<string>() { x.Name })));
+            
+            sourceNamesMap.All(x =>
+            {
+                // [MapperPropertyName(Name="",SourceType=xxx)]
+                var sAttrs = x.Key.GetCustomAttributes<MapperPropertyNameAttribute>();
+                if (sAttrs != null)
+                {
+                    foreach(var attr in sAttrs)
+                    {
+                        if ((attr.TargetType == null ||
+                        (attr.TargetType != null && attr.TargetType.IsAssignableFrom(tType))) &&
+                        !x.Value.Contains(attr.Name))
+                        {
+                            x.Value.Add(attr.Name);
+                        }
+                       
+                    }
+                }
+                return true;
+            });
+
+            // [MapperPropertyName(Name="",SourceType=xxx)]
+            tpis.All(x =>
+            {
+                var tAttrs = x.GetCustomAttributes<MapperPropertyNameAttribute>();
+                if (tAttrs != null)
+                {
+                    foreach (var attr in tAttrs)
+                    {
+                        if (attr.SourceType == null ||
+                        (attr.SourceType != null && attr.SourceType.IsAssignableFrom(sType)) )
+                        {
+                            var sp = sourceNamesMap.FirstOrDefault(x => x.Key.Name == attr.Name);
+                            if (sp.Value != null && !sp.Value.Contains(x.Name))
+                            {
+                                sp.Value.Add(x.Name);
+                            }
+                        }
+                    }
+                }
+
+                return true;
+            });
+
+
             List<Expression> expList = new List<Expression>() { };
+
+
             foreach (var pi in spis)
             {
-                var property = tpis.FirstOrDefault(p => p.Name == pi.Name);
-                property = property ?? tpis.FirstOrDefault(p => p.Name.Equals(pi.Name, StringComparison.OrdinalIgnoreCase));
-
                 Expression excludeExpression = excludeProperties?.FirstOrDefault(p=>p.Key == pi || (p.Key.DeclaringType == pi.DeclaringType && p.Key.Name == pi.Name)).Value;
                 if(excludeExpression?.NodeType == ExpressionType.MemberAccess ||
                     excludeExpression?.NodeType == ExpressionType.Constant)
@@ -286,52 +335,32 @@ namespace Xfrogcn.AspNetCore.Extensions
                 {
                     _dic = mie;
                 }
-                
 
-                // 直接转换
-                if (property != null && property.CanWrite)
+                var names = sourceNamesMap[pi];
+
+                // 获取targetProperty
+                var targetList = tpis.Where(x => names.Any(y => y == x.Name)).ToList();
+                if(targetList==null || targetList.Count == 0)
                 {
-                    var directExp = ConvertProperty(sourcePar, checkerPar, pi, targetPar, property, isCopy, _dic);
-                    if (directExp != null)
-                    {
-                        expList.Add(directExp);
-                    }
-
-                    property = null;
+                    targetList = tpis.Where(x => names.Any(y => y.Equals(x.Name, StringComparison.OrdinalIgnoreCase))).ToList();
                 }
-
-
-                // 特性
-                var sAttrs = pi.GetCustomAttributes<MapperPropertyNameAttribute>();
-               // var tAttrs = pi.GetCustomAttributes<MapperPropertyNameAttribute>();
-                var targetNames = sAttrs.Where(a => a.TargetType != null && a.TargetType.IsAssignableFrom(tType)).Select(a => a.Name).ToList();
-                if (targetNames.Count > 0)
-                {
-                    property = tpis.FirstOrDefault(p => targetNames.Contains(p.Name, StringComparer.OrdinalIgnoreCase));
-                }
-                if (property == null)
-                {
-                    // 默认
-                    targetNames = sAttrs.Where(a => a.TargetType == null).Select(a => a.Name).ToList();
-                    if (targetNames.Count > 0)
-                    {
-                        property = tpis.FirstOrDefault(p => targetNames.Contains(p.Name, StringComparer.OrdinalIgnoreCase));
-                    }
-                }
-
-                if (property == null || !property.CanWrite)
+                if(targetList == null || targetList.Count == 0)
                 {
                     continue;
                 }
 
-
-                var exp = ConvertProperty(sourcePar,checkerPar, pi, targetPar, property, isCopy, _dic);
-                if (exp != null)
+                foreach(var property in targetList)
                 {
-                    expList.Add(exp);
+                    if (!property.CanWrite)
+                    {
+                        continue;
+                    }
+                    var exp = ConvertProperty(sourcePar, checkerPar, pi, targetPar, property, isCopy, _dic);
+                    if (exp != null)
+                    {
+                        expList.Add(exp);
+                    }
                 }
-
-
             }
             return expList;
         }
