@@ -65,5 +65,69 @@ namespace Extensions.Tests.AutoMapper
 
         }
 
+
+        [Fact(DisplayName = "Mapper CopyTo")]
+        public void TestCopyTo()
+        {
+            IServiceCollection sc = new ServiceCollection()
+                .AddLightweightMapper();
+
+            IServiceProvider sp = sc.BuildServiceProvider();
+            IMapperProvider provider = sp.GetRequiredService<IMapperProvider>();
+
+            SourceA a = new SourceA()
+            {
+                A = "A",
+                B = "B",
+                C = "C"
+            };
+            TargetA ta = new TargetA();
+            provider.CopyTo<SourceA, TargetA>(a, ta);
+            Assert.Equal("A", ta.A);
+            Assert.Equal("B", ta.D);
+            Assert.Equal("C", ta.E);
+            Assert.Equal("A", ta.X1);
+            Assert.Equal("C", ta.X2);
+        }
+
+
+        [Fact(DisplayName = "Mapper CopyDefine")]
+        public void TestCopyDefine()
+        {
+            IServiceCollection sc = new ServiceCollection()
+                .AddLightweightMapper();
+
+            IServiceProvider sp = sc.BuildServiceProvider();
+            IMapperProvider provider = sp.GetRequiredService<IMapperProvider>();
+
+            SourceA a = new SourceA()
+            {
+                A = "A",
+                B = "B",
+                C = "C"
+            };
+            TargetA ta = new TargetA();
+            var copyFunc = provider.DefineCopyTo<SourceA, TargetA>();
+            copyFunc(a, ta);
+            Assert.Equal("A", ta.A);
+            Assert.Equal("B", ta.D);
+            Assert.Equal("C", ta.E);
+            Assert.Equal("A", ta.X1);
+            Assert.Equal("C", ta.X2);
+
+            var copyFunc2 = provider.DefineCopyTo<SourceA, TargetA>(t => new
+            {
+                A = t.A
+            });
+
+            ta = new TargetA();
+            copyFunc2(a, ta);
+            Assert.Null(ta.A);
+            Assert.Equal("B", ta.D);
+            Assert.Equal("C", ta.E);
+            Assert.Null(ta.X1);
+            Assert.Equal("C", ta.X2);
+
+        }
     }
 }

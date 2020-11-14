@@ -325,11 +325,16 @@ namespace Xfrogcn.AspNetCore.Extensions
             foreach (var pi in spis)
             {
                 Expression excludeExpression = excludeProperties?.FirstOrDefault(p=>p.Key == pi || (p.Key.DeclaringType == pi.DeclaringType && p.Key.Name == pi.Name)).Value;
+                if(excludeExpression==null && excludeProperties!=null && excludeProperties.Count>0)
+                {
+                    excludeExpression = excludeProperties.FirstOrDefault(x => x.Value is MemberExpression me && me.Member == pi).Value;
+                }
                 if(excludeExpression?.NodeType == ExpressionType.MemberAccess ||
                     excludeExpression?.NodeType == ExpressionType.Constant)
                 {
                     continue;
                 }
+                
                 MemberInitExpression _dic = null;
                 if(excludeExpression is MemberInitExpression mie)
                 {

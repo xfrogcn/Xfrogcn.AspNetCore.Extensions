@@ -25,7 +25,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             mapper.CopyTo(sourceObj, targetObj);
         }
 
-        public static Action<TSource, TTarget> DefineCopyTo<TSource, TTarget>(this IMapperProvider provider, Expression<Func<TSource, object>> excludeProperties)
+        public static Action<TSource, TTarget> DefineCopyTo<TSource, TTarget>(this IMapperProvider provider, Expression<Func<TSource, object>> excludeProperties = null)
             where TSource: class
             where TTarget : class
         {
