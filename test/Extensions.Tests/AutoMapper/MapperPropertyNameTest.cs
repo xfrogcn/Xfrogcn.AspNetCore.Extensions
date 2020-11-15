@@ -7,6 +7,13 @@ namespace Extensions.Tests.AutoMapper
 {
     public class MapperPropertyNameTest
     {
+        public class StructA
+        {
+            public int X { get; set; }
+
+            public int Y { get; set; }
+        }
+
         public class SourceA
         {
             [MapperPropertyName(Name = "X1", TargetType = typeof(TargetA))]
@@ -18,7 +25,8 @@ namespace Extensions.Tests.AutoMapper
             [MapperPropertyName(Name = "X2", TargetType = typeof(TargetA))]
             public string C { get; set; }
 
-          
+            [MapperPropertyName(Name = "TSA")]
+            public StructA SA { get; set; }
         }
 
         public class TargetBase
@@ -29,6 +37,8 @@ namespace Extensions.Tests.AutoMapper
 
             [MapperPropertyName(Name = "C", SourceType = typeof(SourceA))]
             public string E { get; set; }
+
+            public StructA TSA { get; set; }
         }
 
         public class TargetA : TargetBase
@@ -53,7 +63,12 @@ namespace Extensions.Tests.AutoMapper
             {
                 A = "A",
                 B = "B",
-                C = "C"
+                C = "C",
+                SA =new StructA()
+                {
+                    X = 1,
+                    Y = 2
+                }
             };
             var ta = provider.Convert<SourceA, TargetA>(a);
             Assert.Equal("A", ta.A);
@@ -61,8 +76,9 @@ namespace Extensions.Tests.AutoMapper
             Assert.Equal("C", ta.E);
             Assert.Equal("A", ta.X1);
             Assert.Equal("C", ta.X2);
-
-
+            Assert.False(Object.ReferenceEquals(ta.TSA, a.SA));
+            Assert.Equal(1, ta.TSA.X);
+            Assert.Equal(2, ta.TSA.Y);
         }
 
 
