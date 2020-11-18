@@ -34,6 +34,14 @@ ASP.NET Core扩展库是针对.NET Core常用功能的扩展，包含日志、To
 
 .NET Core扩展库中通过HttpFactory及HttpClient来执行HTTP请求调用，HttpClient扩展在此基础上进行了更多功能的扩展，增加易用性、可测试性。
 
+HttpClient包含以下功能：
+
+- 针对HttpClient的相关扩展方法
+- 针对HttpRequestMessage及HttpResponseMessage的扩展方法
+- 请求日志记录
+- 请求头的自动传递（请求链路跟踪）
+- Http请求模拟（用于测试或模拟第三方服务）
+
 ## 并行队列处理
 
 ## 令牌提供器
