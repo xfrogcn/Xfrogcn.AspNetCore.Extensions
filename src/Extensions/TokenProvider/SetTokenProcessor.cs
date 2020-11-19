@@ -2,6 +2,9 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Text;
+using System.Collections.Generic;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {
@@ -59,15 +62,24 @@ namespace Xfrogcn.AspNetCore.Extensions
             public override Task SetTokenAsync(HttpRequestMessage request, string token)
             {
                 UriBuilder ub = new UriBuilder(request.RequestUri);
-                string tokenQuery = $"{_queryKey}={WebUtility.UrlEncode(token)}"; 
-                if (string.IsNullOrEmpty(ub.Query))
+                var qs = System.Web.HttpUtility.ParseQueryString(request.RequestUri.Query);
+                qs[_queryKey] = token;
+                StringBuilder sb = new StringBuilder();
+                var kl = qs.AllKeys;
+                foreach (string k in kl)
                 {
-                    ub.Query = tokenQuery;
+                    if (sb.Length > 0)
+                    {
+                        sb.Append("&");
+                    }
+                    sb.Append(k).Append("=");
+                    if (!String.IsNullOrEmpty(qs[k]))
+                    {
+
+                        sb.Append(System.Net.WebUtility.UrlEncode(qs[k]));
+                    }
                 }
-                else
-                {
-                    ub.Query = $"{ub.Query}&{tokenQuery}";
-                }
+                ub.Query = sb.ToString();
                 request.RequestUri = ub.Uri;
 
                 return Task.CompletedTask;
