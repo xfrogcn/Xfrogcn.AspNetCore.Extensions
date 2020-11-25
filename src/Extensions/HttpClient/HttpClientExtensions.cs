@@ -52,12 +52,36 @@ namespace System.Net.Http
             return await GetAsync<string>(client, url, queryString, headers);
         }
 
-        public static async Task<TResponse> SubmitFormAsync<TResponse>(this HttpClient client, string url, Dictionary<string, string> formData, string method = "POST", NameValueCollection queryString = null, NameValueCollection headers = null)
+        public static async Task<TResponse> SubmitFormAsync<TResponse>(this HttpClient client, string url, Dictionary<string, string> formData, string method = "POST", NameValueCollection queryString = null, NameValueCollection headers = null, bool ignoreEncode = false)
         {
             url = CreateUrl(url, queryString);
             HttpMethod hm = new HttpMethod(method);
             HttpRequestMessage request = new HttpRequestMessage(hm, url);
-            request.Content = new FormUrlEncodedContent(formData);
+            if (ignoreEncode)
+            {
+               
+                StringBuilder sb = new StringBuilder();
+                if (formData != null)
+                {
+                    foreach (var kv in formData)
+                    {
+                        if (sb.Length > 0)
+                        {
+                            sb.Append("&");
+                        }
+                        sb.Append(kv.Key).Append("=");
+                        sb.Append(WebUtility.UrlEncode(kv.Value ?? ""));
+                    }
+                }
+                request.Content = new StringContent(sb.ToString());
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+            }
+            else
+            {
+                // 可能引发异常  System.UriFormatException : Invalid URI: The Uri string is too long.
+                request.Content = new FormUrlEncodedContent(formData);
+            }
+            
             
             MergeHttpHeaders(request, headers);
 
@@ -68,9 +92,9 @@ namespace System.Net.Http
             }
             return await response.GetObjectAsync<TResponse>();
         }
-        public static async Task<string> SubmitFormAsync(this HttpClient client, string url, Dictionary<string, string> formData, string method = "POST", NameValueCollection queryString = null, NameValueCollection headers = null)
+        public static async Task<string> SubmitFormAsync(this HttpClient client, string url, Dictionary<string, string> formData, string method = "POST", NameValueCollection queryString = null, NameValueCollection headers = null, bool ignoreEncode = false)
         {
-            return await SubmitFormAsync<string>(client, url, formData, method, queryString, headers);
+            return await SubmitFormAsync<string>(client, url, formData, method, queryString, headers, ignoreEncode);
         }
 
         /// <summary>
