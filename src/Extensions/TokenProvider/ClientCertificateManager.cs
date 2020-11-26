@@ -62,11 +62,20 @@ namespace Xfrogcn.AspNetCore.Extensions
         public async Task<string> GetAccessToken()
         {
             // 从缓存中获取token
-            TokenCache token = await _cacheManager.GetToken();
-            //if (token != null)
-            //{
-            //    _logger.LogInformation($"cache token: {Client.ClientID} {token.expires_in} {token.LastGetTime} {(DateTime.UtcNow - token.LastGetTime.ToUniversalTime()).TotalSeconds - token.expires_in}");
-            //}
+            TokenCache token = null;
+            try
+            {
+                token = await _cacheManager.GetToken();
+            }
+            catch
+            {
+                try
+                {
+                    await _cacheManager.RemoveToken();
+                }
+                catch { }
+            }
+           
             
             if (token == null || token.IsExpired())
             {

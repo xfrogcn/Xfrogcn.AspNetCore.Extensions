@@ -15,8 +15,6 @@ namespace Xfrogcn.AspNetCore.Extensions.RedisQueueProducer
     {
         readonly RedisOptions _redisOptions;
         readonly ILogger<QueueProducer<TEntity>> _logger;
-        //private static volatile ConcurrentDictionary<int, ConnectionMultiplexer> _connections = new ConcurrentDictionary<int, ConnectionMultiplexer>();
-        //private static readonly ConcurrentDictionary<int, SemaphoreSlim> _connectionLocks = new ConcurrentDictionary<int, SemaphoreSlim>();
         readonly RedisConnectionManager _connectionManager;
         private IDatabase _cache;
         private readonly string _queueRedisKey;
@@ -29,12 +27,10 @@ namespace Xfrogcn.AspNetCore.Extensions.RedisQueueProducer
         private Action<RedisChannel, RedisValue> _subAction = null;
         private object _locker = new object();
 
-        //readonly int _redisOptionsHashCode = 0;
-
+      
         public QueueProducer(string name, RedisOptions redisOptions, RedisConnectionManager connectionManager, ILogger<QueueProducer<TEntity>> logger)
         {
             _redisOptions = redisOptions;
-            //_redisOptionsHashCode = GetRedisOptionsHashCode();
             _connectionManager = connectionManager;
 
       
@@ -51,21 +47,35 @@ namespace Xfrogcn.AspNetCore.Extensions.RedisQueueProducer
 
         public async Task<bool> TryAddAsync(TEntity entity, CancellationToken token)
         {
-            await ConnectAsync(token);
+            bool isOk = false;
+            for (int i = 0; i < 3; i++)
+            {
+                try
+                {
+                    await ConnectAsync(token);
 
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream();
-            bf.Serialize(ms, entity);
-            ms.Position = 0;
-            BinaryReader br = new BinaryReader(ms);
-            var bytes = br.ReadBytes((int)ms.Length);
+                    BinaryFormatter bf = new BinaryFormatter();
+                    MemoryStream ms = new MemoryStream();
+                    bf.Serialize(ms, entity);
+                    ms.Position = 0;
+                    BinaryReader br = new BinaryReader(ms);
+                    var bytes = br.ReadBytes((int)ms.Length);
 
-            _cache.ListLeftPush(
-                _queueRedisKey,
-                bytes);
+                    _cache.ListLeftPush(
+                        _queueRedisKey,
+                        bytes);
 
-            await  sub.PublishAsync(_queueRedisKey+"_msg", "1");
-            return true;
+                    await sub.PublishAsync(_queueRedisKey + "_msg", "1");
+                    isOk = true;
+                    break;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "TryAddAsync异常重试");
+                }
+            }
+           
+            return isOk;
         }
 
         class CacheItem
