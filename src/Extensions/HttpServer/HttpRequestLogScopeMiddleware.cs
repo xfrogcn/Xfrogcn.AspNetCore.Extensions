@@ -87,7 +87,7 @@ namespace Xfrogcn.AspNetCore.Extensions
 
             string url = context.Request.GetAbsoluteUri();
 
-
+            
             //记录请求日志
             if (logger.IsEnabled(LogLevel.Trace))
             {
