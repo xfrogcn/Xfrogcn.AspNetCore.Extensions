@@ -53,7 +53,8 @@ namespace Microsoft.AspNetCore.Hosting
                     $"\t客户端请求日志级别：{config.ClientRequestLevel}\n" +
                     $"\t是否开启客户端请求日志：{config.EnableClientRequestLog}\n" +
                     $"\t日志保留天数：{config.MaxLogDays}\n" +
-                    $"\t记录以下HTTP请求头：{sb.ToString()} ");
+                    $"\t记录以下HTTP请求头：{sb.ToString()}\n" +
+                    $"\tURLS：{context.Configuration["URLS"]}\n");
 
             });
            
