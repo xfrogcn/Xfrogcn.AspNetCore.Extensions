@@ -8,10 +8,8 @@ namespace Xfrogcn.AspNetCore.Extensions
 {
     public static class LogLevelConverter
     {
-        public static LogLevel? Converter(LogEventLevel? level)
+        public static LogLevel Converter(LogEventLevel level)
         {
-            if (level == null)
-                return null;
             LogLevel l = LogLevel.Trace;
             switch (level)
             {

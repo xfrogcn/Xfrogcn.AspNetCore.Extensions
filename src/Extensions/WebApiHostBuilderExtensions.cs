@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Hosting
                     $"\t应用日志级别：{config.AppLogLevel}\n" +
                     $"\tEF Core Command日志级别：{config.EFCoreCommandLevel}\n" +
                     $"\t是否开启控制台日志：{config.ConsoleLog}\n" +
-                    $"\t服务端请求日志级别：{config.ServerRequestLevel}\n" +
+                    $"\t服务端请求日志记录级别：{config.ServerRequestLevel}\n" +
                     $"\t客户端请求日志级别：{config.ClientRequestLevel}\n" +
                     $"\t是否开启客户端请求日志：{config.EnableClientRequestLog}\n" +
                     $"\t日志保留天数：{config.MaxLogDays}\n" +

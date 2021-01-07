@@ -80,7 +80,8 @@ namespace Xfrogcn.AspNetCore.Extensions
         }
 
         /// <summary>
-        /// 请求日志级别
+        /// 服务端请求日志记录级别
+        /// 服务端请求详情日志默认级别为Trace，故将此属性设置为Trace可开启服务端详细日志
         /// </summary>
         public LogEventLevel ServerRequestLevel
         {
