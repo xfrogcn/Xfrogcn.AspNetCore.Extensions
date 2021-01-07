@@ -2,11 +2,8 @@
 using StackExchange.Redis;
 using System;
 using System.Collections.Concurrent;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Threading.Tasks;
-using Xfrogcn.AspNetCore.Extensions;
 using Xfrogcn.AspNetCore.Extensions.ParallelQueue;
 
 namespace Xfrogcn.AspNetCore.Extensions.RedisQueueProducer
@@ -54,12 +51,7 @@ namespace Xfrogcn.AspNetCore.Extensions.RedisQueueProducer
                 {
                     await ConnectAsync(token);
 
-                    BinaryFormatter bf = new BinaryFormatter();
-                    MemoryStream ms = new MemoryStream();
-                    bf.Serialize(ms, entity);
-                    ms.Position = 0;
-                    BinaryReader br = new BinaryReader(ms);
-                    var bytes = br.ReadBytes((int)ms.Length);
+                    var bytes = entity.GetBytes();
 
                     _cache.ListLeftPush(
                         _queueRedisKey,
@@ -133,9 +125,8 @@ namespace Xfrogcn.AspNetCore.Extensions.RedisQueueProducer
             if (item.HasValue)
             {
                 byte[] bytes = item;
-                BinaryFormatter bf = new BinaryFormatter();
-                MemoryStream ms = new MemoryStream(bytes);
-                TEntity entity = (TEntity)bf.Deserialize(ms);
+
+                TEntity entity = bytes.GetEntity<TEntity>();
                 return (entity, true);
             }
 

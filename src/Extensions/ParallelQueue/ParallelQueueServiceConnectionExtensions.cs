@@ -1,14 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection.Extensions;
 using Xfrogcn.AspNetCore.Extensions;
 using Xfrogcn.AspNetCore.Extensions.ParallelQueue;
-using Microsoft.Extensions.Options;
-using System.Net.NetworkInformation;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class ParallelQueueServiceConnectionExtensions
+    public static class ParallelQueueServiceCollectionionExtensions
     {
         public static ParallelQueueBuilder<TEntity, TState> AddParallelQueue<TEntity, TState>(this IServiceCollection serviceDescriptors, string name)
         {
