@@ -110,6 +110,9 @@ namespace Xfrogcn.AspNetCore.Extensions
             }
         }
 
+        /// <summary>
+        /// 是否允许客户端请求日志
+        /// </summary>
         public bool EnableClientRequestLog { get; set; }
 
         /// <summary>
