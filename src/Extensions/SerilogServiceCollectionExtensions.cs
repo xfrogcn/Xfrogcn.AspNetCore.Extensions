@@ -128,27 +128,42 @@ namespace Xfrogcn.AspNetCore.Extensions
                 {
                     template = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{NewLine}{Exception}";
                 }
-                bool keySelector(Serilog.Events.LogEvent logEvent, out string key)
+                bool keySelector(Serilog.Events.LogEvent logEvent, out LogPathAndTimeKey key)
                 {
                     StringWriter sw = new StringWriter();
                     StringBuilder sb = new StringBuilder();
                     pathFormatter.Format(logEvent, sw);
                     sw.Flush();
                     string dp = sw.GetStringBuilder().ToString();
-                    key = Path.Combine(path, dp);
+                    string p = Path.Combine(path, dp);
+                    key = new LogPathAndTimeKey()
+                    {
+                        Path = p,
+                        Time = logEvent.Timestamp.Date
+                    };
                     return true;
                 };
                 loggerConfiguration = loggerConfiguration
-                    .WriteTo.MapCondition<string>(keySelector, (path, lc) => {
+                    .WriteTo.MapCondition<LogPathAndTimeKey>(keySelector, (path, lc) => {
                         lc.Async(lc => lc.File(
-                             path,
+                             path.Path,
                              rollingInterval: RollingInterval.Infinite,
                              rollOnFileSizeLimit: true,
                              fileSizeLimitBytes: apiConfig.MaxLogFileSize,
                              retainedFileCountLimit: 128,
                              hooks: archiveHooks,
-                             outputTemplate: template));
-                    }, null);
+                             outputTemplate: template,
+                             shared: true));
+                    }, key=>
+                    {
+                        // 自动Dispose前一天的日志
+                        DateTimeOffset now = DateTimeOffset.Now.Date;
+                        if( now > key.Time.Date)
+                        {
+                            return true;
+                        }
+                        return false;
+                    });
 
             }
 

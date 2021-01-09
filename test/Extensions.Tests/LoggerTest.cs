@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+using Xfrogcn.AspNetCore.Extensions;
 using Xunit;
 
 namespace Extensions.Tests
@@ -190,11 +191,11 @@ namespace Extensions.Tests
                 disposeCount++;
             };
 
-            config.WriteTo.MapCondition<TestSinkKey>((logEvent) =>
+            config.WriteTo.MapCondition<LogPathAndTimeKey>((logEvent) =>
             {
-                TestSinkKey key = new TestSinkKey()
+                LogPathAndTimeKey key = new LogPathAndTimeKey()
                 {
-                    Name = (logEvent.Properties.GetValueOrDefault("Name") as ScalarValue).Value.ToString(),
+                    Path = (logEvent.Properties.GetValueOrDefault("Name") as ScalarValue).Value.ToString(),
                     Time = logEvent.Timestamp
                 };
                 return key;
@@ -203,7 +204,7 @@ namespace Extensions.Tests
                 logConfig.Sink(new TestSink(_logContents, callback));
             }, key =>
             {
-                return key.Name == "Test1";
+                return key.Path == "Test1";
             }, TimeSpan.FromSeconds(0));
 
             var logger = config.CreateLogger();
@@ -219,6 +220,55 @@ namespace Extensions.Tests
             testLogger2.Information("A");
 
             Assert.Equal(2, disposeCount);
+
+        }
+
+        [Fact(DisplayName = "MapCondition-CustomerKey-Time-Condition")]
+        public void Test6()
+        {
+            LoggerConfiguration config = new Serilog.LoggerConfiguration();
+
+            List<string> _logContents = new List<string>();
+            int disposeCount = 0;
+            Action callback = () =>
+            {
+                disposeCount++;
+            };
+
+            config.WriteTo.MapCondition<LogPathAndTimeKey>((logEvent) =>
+            {
+                LogPathAndTimeKey key = new LogPathAndTimeKey()
+                {
+                    Path = (logEvent.Properties.GetValueOrDefault("Name") as ScalarValue).Value.ToString(),
+                    Time = logEvent.Timestamp.Date
+                };
+                return key;
+            }, (key, logConfig) =>
+            {
+                logConfig.Sink(new TestSink(_logContents, callback));
+            }, key =>
+            {
+                DateTimeOffset now = DateTimeOffset.Now.Date.AddDays(1);
+                if (now > key.Time.Date)
+                {
+                    return true;
+                }
+                return false;
+            }, TimeSpan.FromSeconds(0));
+
+            var logger = config.CreateLogger();
+
+            var testLogger1 = logger.ForContext("Name", "Test1");
+            testLogger1.Information("A");
+
+            var testLogger2 = logger.ForContext("Name", "Test2");
+            testLogger2.Information("A");
+
+            testLogger1.Information("B");
+
+            testLogger2.Information("A");
+
+            Assert.Equal(4, disposeCount);
 
         }
     }
@@ -249,20 +299,5 @@ namespace Extensions.Tests
         }
     }
 
-    class TestSinkKey : IEqualityComparer<TestSinkKey>
-    {
-        public string Name { get; set; }
-
-        public DateTimeOffset Time { get; set; }
-
-        public bool Equals([AllowNull] TestSinkKey x, [AllowNull] TestSinkKey y)
-        {
-            return x.Name == y.Name;
-        }
-
-        public int GetHashCode([DisallowNull] TestSinkKey obj)
-        {
-            return (obj.Name ?? "").GetHashCode();
-        }
-    }
+    
 }
