@@ -25,10 +25,10 @@
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.9" />
     <PackageReference Include="Serilog.Sinks.File.Archive" Version="1.0.1" />
-    <PackageReference Include="Serilog.Sinks.Map" Version="1.0.1" />
     <PackageReference Include="Xfrogcn.BinaryFormatter" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Expressions\" />
+    <Folder Include="Logger\Sinks\" />
   </ItemGroup>
 </Project>

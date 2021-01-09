@@ -21,7 +21,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         readonly IServiceProvider _serviceProvider;
         readonly ILogger<ClearLogsHostService> _logger;
 
-        readonly string[] logExtensions = new string[] { ".log", ".txt" };
+        readonly string[] logExtensions = new string[] { ".log", ".txt", ".DS_Store" };
 
         public ClearLogsHostService(
             WebApiConfig config,
@@ -65,10 +65,12 @@ namespace Xfrogcn.AspNetCore.Extensions
 
             try
             {
-                if (_config.MaxLogDays <= 0)
-                {
-                    return;
-                }
+                var logger = Serilog.Log.Logger;
+
+                //if (_config.MaxLogDays <= 0)
+                //{
+                //    return;
+                //}
 
                 _logger.LogInformation("开始清理日志");
 

@@ -1,20 +1,19 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+﻿using System;
+using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-using System;
-using System.Text;
 using Xfrogcn.AspNetCore.Extensions;
 
-namespace Microsoft.AspNetCore.Hosting
+namespace Microsoft.Extensions.Hosting
 {
-    public static class WebApiHostBuilderExtensions
+    public static class IHostBuilderExtensions
     {
         public static Logger InnerLogger = null;
 
 
-        public static IWebHostBuilder UseExtensions(this IWebHostBuilder builder, string[] args, Action<WebApiConfig> configAction = null, Action<LoggerConfiguration> configureLogger = null)
+        public static IHostBuilder UseExtensions(this IHostBuilder builder, Action<WebApiConfig> configAction = null, Action<LoggerConfiguration> configureLogger = null)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
 
@@ -27,7 +26,7 @@ namespace Microsoft.AspNetCore.Hosting
             var _logger = tempLogger.CreateLogger();
             InnerLogger = _logger;
 
-            
+
 
             // 注意 Host的初始化流程 先以此执行 ConfigureAppConfiguration， 最后执行 ConfigureServices
             builder = builder.ConfigureServices((context, collection) =>
@@ -54,17 +53,13 @@ namespace Microsoft.AspNetCore.Hosting
                     $"\t客户端请求日志级别：{config.ClientRequestLevel}\n" +
                     $"\t是否开启客户端请求日志：{config.EnableClientRequestLog}\n" +
                     $"\t日志保留天数：{config.MaxLogDays}\n" +
-                    $"\t记录以下HTTP请求头：{sb.ToString()}\n" +
-                    $"\tURLS：{context.Configuration["URLS"]}\n");
-
+                    $"\t记录以下HTTP请求头：{sb.ToString()}");
             });
-           
 
 
             return builder;
         }
 
-      
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
@@ -77,6 +72,7 @@ namespace Microsoft.AspNetCore.Hosting
                 Log.Logger.Fatal($"系统异常");
             }
         }
+
 
     }
 }

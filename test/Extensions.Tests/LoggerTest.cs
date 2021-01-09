@@ -108,6 +108,26 @@ namespace Extensions.Tests
 
         }
 
+        [Fact(DisplayName = "定时清理")]
+        public async Task Test3()
+        {
+            var host = Host.CreateDefaultBuilder()
+                .UseExtensions(config=>
+                {
+                    config.MaxLogDays = 0;
+                })
+                .Build();
 
+            var logger = host.Services.GetRequiredService<ILogger<LoggerTest>>();
+            logger.LogError("test");
+
+            await host.StartAsync();
+
+            logger.LogError("test");
+            logger.LogError("test");
+
+            await Task.Delay(10000);
+            
+        }
     }
 }

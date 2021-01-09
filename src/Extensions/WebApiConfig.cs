@@ -160,6 +160,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         /// </summary>
         public int MaxLogDays { get; set; }
 
+
         public WebApiConfig()
         {
             EnableSerilog = true;

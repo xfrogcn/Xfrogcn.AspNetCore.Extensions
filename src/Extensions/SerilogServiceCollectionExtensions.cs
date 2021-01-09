@@ -31,6 +31,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             configureLogger?.Invoke(loggerConfiguration);
             var logger = loggerConfiguration.CreateLogger();
 
+
             Serilog.ILogger registeredLogger = null;
             if (preserveStaticLogger)
             {
@@ -148,6 +149,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                              hooks: archiveHooks,
                              outputTemplate: template));
                     });
+
             }
 
             return loggerConfiguration;
