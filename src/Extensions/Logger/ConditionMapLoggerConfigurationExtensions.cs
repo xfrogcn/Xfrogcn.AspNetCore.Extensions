@@ -228,8 +228,8 @@ namespace Serilog
         /// 根据指定的KeySelector委托生成的Key(TKey类型)动态生成日志Sink
         /// </summary>
         /// <typeparam name="TKey">Map时的Key类型</typeparam>
-        /// <param name="loggerSinkConfiguration"></param>
-        /// <param name="keySelector">Sink配置</param>
+        /// <param name="loggerSinkConfiguration">Sink配置</param>
+        /// <param name="keySelector">生成Key的委托</param>
         /// <param name="configure">根据key生成目标Sink的配置委托</param>
         /// <param name="disposeCondition">Sink符合此条件时自动Dispose</param>
         /// <param name="checkInternal">Sink Dispose条件的检查间隔</param>

@@ -1,12 +1,9 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using System;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Serilog;
-using Serilog.Core;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xfrogcn.AspNetCore.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection

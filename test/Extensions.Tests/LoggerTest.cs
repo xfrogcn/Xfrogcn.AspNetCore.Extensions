@@ -1,11 +1,13 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 using Xunit;
 
 namespace Extensions.Tests
@@ -13,6 +15,8 @@ namespace Extensions.Tests
     [Trait("", "Logger")]
     public class LoggerTest
     {
+
+
         [Fact(DisplayName = "动态修改日志级别")]
         public void Test1()
         {
@@ -71,7 +75,7 @@ namespace Extensions.Tests
                 .Build();
 
             IServiceCollection services = new ServiceCollection()
-                .AddExtensions(config, configAction=>
+                .AddExtensions(config, configAction =>
                 {
                     configAction.AppLogLevel = Serilog.Events.LogEventLevel.Error;
                 })
@@ -108,26 +112,157 @@ namespace Extensions.Tests
 
         }
 
-        [Fact(DisplayName = "定时清理")]
-        public async Task Test3()
+        [Fact(DisplayName = "MapCondition-MapCountLimit")]
+        public void Test3()
         {
-            var host = Host.CreateDefaultBuilder()
-                .UseExtensions(config=>
+            LoggerConfiguration config = new Serilog.LoggerConfiguration();
+
+            List<string> _logContents = new List<string>();
+            int disposeCount = 0;
+            Action callback = () =>
+            {
+                disposeCount++;
+            };
+
+            config.WriteTo.MapCondition<string>((logEvent) =>
+            {
+                return (logEvent.Properties.GetValueOrDefault("Name") as ScalarValue).Value.ToString();
+            }, (key, logConfig) =>
+            {
+                logConfig.Sink(new TestSink(_logContents, callback));
+            }, null, TimeSpan.FromSeconds(0), 1);
+
+            var logger = config.CreateLogger();
+
+            var testLogger1 = logger.ForContext("Name", "Test1");
+            testLogger1.Information("A");
+
+            var testLogger2 = logger.ForContext("Name", "Test2");
+            testLogger2.Information("A");
+
+            Assert.Equal(1, disposeCount);
+
+        }
+
+        [Fact(DisplayName = "MapCondition-DisposeCondition")]
+        public void Test4()
+        {
+            LoggerConfiguration config = new Serilog.LoggerConfiguration();
+
+            List<string> _logContents = new List<string>();
+            int disposeCount = 0;
+            Action callback = () =>
+            {
+                disposeCount++;
+            };
+
+            config.WriteTo.MapCondition<string>((logEvent) =>
+            {
+                return (logEvent.Properties.GetValueOrDefault("Name") as ScalarValue).Value.ToString();
+            }, (key, logConfig) =>
+            {
+                logConfig.Sink(new TestSink(_logContents, callback));
+            }, key => true, TimeSpan.FromSeconds(0));
+
+            var logger = config.CreateLogger();
+
+            var testLogger1 = logger.ForContext("Name", "Test1");
+            testLogger1.Information("A");
+
+            var testLogger2 = logger.ForContext("Name", "Test2");
+            testLogger2.Information("A");
+
+            testLogger1.Information("B");
+
+            Assert.Equal(3, disposeCount);
+
+        }
+
+        [Fact(DisplayName = "MapCondition-CustomerKey")]
+        public void Test5()
+        {
+            LoggerConfiguration config = new Serilog.LoggerConfiguration();
+
+            List<string> _logContents = new List<string>();
+            int disposeCount = 0;
+            Action callback = () =>
+            {
+                disposeCount++;
+            };
+
+            config.WriteTo.MapCondition<TestSinkKey>((logEvent) =>
+            {
+                TestSinkKey key = new TestSinkKey()
                 {
-                    config.MaxLogDays = 0;
-                })
-                .Build();
+                    Name = (logEvent.Properties.GetValueOrDefault("Name") as ScalarValue).Value.ToString(),
+                    Time = logEvent.Timestamp
+                };
+                return key;
+            }, (key, logConfig) =>
+            {
+                logConfig.Sink(new TestSink(_logContents, callback));
+            }, key =>
+            {
+                return key.Name == "Test1";
+            }, TimeSpan.FromSeconds(0));
 
-            var logger = host.Services.GetRequiredService<ILogger<LoggerTest>>();
-            logger.LogError("test");
+            var logger = config.CreateLogger();
 
-            await host.StartAsync();
+            var testLogger1 = logger.ForContext("Name", "Test1");
+            testLogger1.Information("A");
 
-            logger.LogError("test");
-            logger.LogError("test");
+            var testLogger2 = logger.ForContext("Name", "Test2");
+            testLogger2.Information("A");
 
-            await Task.Delay(10000);
-            
+            testLogger1.Information("B");
+
+            testLogger2.Information("A");
+
+            Assert.Equal(2, disposeCount);
+
+        }
+    }
+
+
+
+
+
+    class TestSink : ILogEventSink, IDisposable
+    {
+        readonly List<string> _contents;
+        readonly Action _disposeCallback;
+
+        public TestSink(List<string> contents, Action disposeCallback)
+        {
+            _contents = contents;
+            _disposeCallback = disposeCallback;
+        }
+
+        public void Dispose()
+        {
+            _disposeCallback();
+        }
+
+        public void Emit(LogEvent logEvent)
+        {
+            _contents.Add(logEvent.RenderMessage());
+        }
+    }
+
+    class TestSinkKey : IEqualityComparer<TestSinkKey>
+    {
+        public string Name { get; set; }
+
+        public DateTimeOffset Time { get; set; }
+
+        public bool Equals([AllowNull] TestSinkKey x, [AllowNull] TestSinkKey y)
+        {
+            return x.Name == y.Name;
+        }
+
+        public int GetHashCode([DisallowNull] TestSinkKey obj)
+        {
+            return (obj.Name ?? "").GetHashCode();
         }
     }
 }

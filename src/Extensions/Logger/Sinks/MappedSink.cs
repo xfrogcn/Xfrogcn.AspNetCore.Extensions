@@ -19,7 +19,7 @@ namespace Xfrogcn.AspNetCore.Extensions.Logger
         readonly Func<TKey, bool> _disposeCondition;
         readonly TimeSpan _checkInterval;
         readonly int? _sinkMapCountLimit;
-        readonly ConcurrentDictionary<TKey, ILogEventSink> _sinkMap = new ConcurrentDictionary<TKey, ILogEventSink>();
+        readonly ConcurrentDictionary<TKey, ILogEventSink> _sinkMap;
         bool _disposed;
         DateTimeOffset _lastCheckTime = DateTimeOffset.MinValue;
         readonly object _locker = new object();
@@ -36,6 +36,20 @@ namespace Xfrogcn.AspNetCore.Extensions.Logger
             _disposeCondition = disposeCondition;
             _configure = configure;
             _sinkMapCountLimit = sinkMapCountLimit;
+
+            Type keyType = typeof(TKey);
+
+            if (typeof(IEqualityComparer<TKey>).IsAssignableFrom(typeof(TKey)) &&
+                keyType.GetConstructor(new Type[] { }) != null)
+            {
+
+                _sinkMap = new ConcurrentDictionary<TKey, ILogEventSink>(
+                    Activator.CreateInstance<TKey>() as IEqualityComparer<TKey>);
+            }
+            else
+            {
+                _sinkMap = new ConcurrentDictionary<TKey, ILogEventSink>();
+            }
         }
 
         
@@ -90,16 +104,19 @@ namespace Xfrogcn.AspNetCore.Extensions.Logger
             }
 
             // 先移除超出数量限制的sink
-            while (_sinkMap.Count > _sinkMapCountLimit.Value)
+            if (_sinkMapCountLimit.HasValue && _sinkMapCountLimit.Value > 0)
             {
-                foreach (var k in _sinkMap.Keys)
+                while (_sinkMap.Count > _sinkMapCountLimit.Value)
                 {
-                    if (key.Equals(k))
-                        continue;
+                    foreach (var k in _sinkMap.Keys)
+                    {
+                        if (key.Equals(k))
+                            continue;
 
-                    _sinkMap.Remove(k, out ILogEventSink removed);
-                    (removed as IDisposable)?.Dispose();
-                    break;
+                        _sinkMap.Remove(k, out ILogEventSink removed);
+                        (removed as IDisposable)?.Dispose();
+                        break;
+                    }
                 }
             }
 

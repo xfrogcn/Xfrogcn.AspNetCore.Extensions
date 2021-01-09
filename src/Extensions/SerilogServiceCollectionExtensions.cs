@@ -139,7 +139,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                     return true;
                 };
                 loggerConfiguration = loggerConfiguration
-                    .WriteTo.Map<string>(keySelector, (path, lc) => {
+                    .WriteTo.MapCondition<string>(keySelector, (path, lc) => {
                         lc.Async(lc => lc.File(
                              path,
                              rollingInterval: RollingInterval.Infinite,
@@ -148,7 +148,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                              retainedFileCountLimit: 128,
                              hooks: archiveHooks,
                              outputTemplate: template));
-                    });
+                    }, null);
 
             }
 
