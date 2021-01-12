@@ -8,12 +8,13 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Extensions.Logging;
 using Serilog.Sinks.File.Archive;
+using Xfrogcn.AspNetCore.Extensions.Logger.Json;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {
     public static class SerilogServiceCollectionExtensions
     {
-        public static IServiceCollection AddDefaultSerilog(this IServiceCollection serviceDescriptors, WebApiConfig apiConfig=null, Action<LoggerConfiguration> configureLogger = null, bool preserveStaticLogger = false, bool writeToProviders = true)
+        public static IServiceCollection AddDefaultSerilog(this IServiceCollection serviceDescriptors, WebApiConfig apiConfig = null, Action<LoggerConfiguration> configureLogger = null, bool preserveStaticLogger = false, bool writeToProviders = true)
         {
             var loggerConfiguration = new LoggerConfiguration();
 
@@ -26,7 +27,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             }
 
             apiConfig = apiConfig ?? new WebApiConfig();
-            configFromWebApiConfig(loggerConfiguration, apiConfig); 
+            configFromWebApiConfig(loggerConfiguration, apiConfig);
 
             configureLogger?.Invoke(loggerConfiguration);
             var logger = loggerConfiguration.CreateLogger();
@@ -43,7 +44,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             }
 
             // 去除内置的LoggerProvider
-            var removeProviders = serviceDescriptors.Where(x => x.ServiceType == typeof( ILoggerProvider)).ToList();
+            var removeProviders = serviceDescriptors.Where(x => x.ServiceType == typeof(ILoggerProvider)).ToList();
             removeProviders.ForEach(p =>
             {
                 serviceDescriptors.Remove(p);
@@ -101,7 +102,11 @@ namespace Xfrogcn.AspNetCore.Extensions
                 .Destructure.ToMaximumStringLength(apiConfig.MaxLogLength);
 
             loggerConfiguration = loggerConfiguration.Enrich.FromLogContext();
-            if (apiConfig.ConsoleLog)
+            if (apiConfig.ConsoleJsonLog)
+            {
+                loggerConfiguration = loggerConfiguration.WriteTo.Console(new CompactJsonFormatter(apiConfig));
+            }
+            else if (apiConfig.ConsoleLog)
             {
                 loggerConfiguration = loggerConfiguration.WriteTo.Console();
             }
@@ -143,8 +148,38 @@ namespace Xfrogcn.AspNetCore.Extensions
                     };
                     return true;
                 };
-                loggerConfiguration = loggerConfiguration
-                    .WriteTo.MapCondition<LogPathAndTimeKey>(keySelector, (path, lc) => {
+
+                if (apiConfig.FileJsonLog)
+                {
+                    var formatter = new CompactJsonFormatter(apiConfig);
+                    loggerConfiguration = loggerConfiguration
+                    .WriteTo.MapCondition<LogPathAndTimeKey>(keySelector, (path, lc) =>
+                    {
+                        lc.Async(lc => lc.File(
+                             formatter,
+                             path.Path,
+                             rollingInterval: RollingInterval.Infinite,
+                             rollOnFileSizeLimit: true,
+                             fileSizeLimitBytes: apiConfig.MaxLogFileSize,
+                             retainedFileCountLimit: 128,
+                             hooks: archiveHooks,
+                             shared: true));
+                    }, key =>
+                    {
+                        // 自动Dispose前一天的日志
+                        DateTimeOffset now = DateTimeOffset.Now.Date;
+                        if (now > key.Time.Date)
+                        {
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+                else
+                {
+                    loggerConfiguration = loggerConfiguration
+                    .WriteTo.MapCondition<LogPathAndTimeKey>(keySelector, (path, lc) =>
+                    {
                         lc.Async(lc => lc.File(
                              path.Path,
                              rollingInterval: RollingInterval.Infinite,
@@ -154,16 +189,18 @@ namespace Xfrogcn.AspNetCore.Extensions
                              hooks: archiveHooks,
                              outputTemplate: template,
                              shared: true));
-                    }, key=>
+                    }, key =>
                     {
                         // 自动Dispose前一天的日志
                         DateTimeOffset now = DateTimeOffset.Now.Date;
-                        if( now > key.Time.Date)
+                        if (now > key.Time.Date)
                         {
                             return true;
                         }
                         return false;
                     });
+                }
+
 
             }
 

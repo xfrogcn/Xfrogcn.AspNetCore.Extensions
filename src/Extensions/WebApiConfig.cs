@@ -121,9 +121,19 @@ namespace Xfrogcn.AspNetCore.Extensions
         public bool ConsoleLog { get; set; } 
 
         /// <summary>
+        /// 将日志输出到控制台，并使用JSON格式
+        /// </summary>
+        public bool ConsoleJsonLog { get; set; }
+
+        /// <summary>
         /// 文件日志
         /// </summary>
         public bool FileLog { get; set; }
+
+        /// <summary>
+        /// 采用JSON格式的文件日志
+        /// </summary>
+        public bool FileJsonLog { get; set; }
 
         /// <summary>
         /// 需要记录到日志的HTTP请求头键
@@ -159,6 +169,11 @@ namespace Xfrogcn.AspNetCore.Extensions
         /// 日志最长保留天数
         /// </summary>
         public int MaxLogDays { get; set; }
+
+        /// <summary>
+        /// 是否忽略长日志拆分
+        /// </summary>
+        public bool IgnoreLongLog { get; set; } = false;
 
 
         public WebApiConfig()
