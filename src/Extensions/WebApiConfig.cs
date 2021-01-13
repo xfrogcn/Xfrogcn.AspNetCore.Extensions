@@ -116,24 +116,24 @@ namespace Xfrogcn.AspNetCore.Extensions
         public bool EnableClientRequestLog { get; set; }
 
         /// <summary>
-        /// 日志是否输出到控制台
+        /// 日志是否输出到控制台，默认为false
         /// </summary>
-        public bool ConsoleLog { get; set; } 
+        public bool ConsoleLog { get; set; } = false;
 
         /// <summary>
-        /// 将日志输出到控制台，并使用JSON格式
+        /// 将日志输出到控制台，并使用JSON格式，默认为false
         /// </summary>
-        public bool ConsoleJsonLog { get; set; }
+        public bool ConsoleJsonLog { get; set; } = false;
 
         /// <summary>
-        /// 文件日志
+        /// 文件日志，默认为true
         /// </summary>
-        public bool FileLog { get; set; }
+        public bool FileLog { get; set; } = true;
 
         /// <summary>
-        /// 采用JSON格式的文件日志
+        /// 采用JSON格式的文件日志, 默认为false
         /// </summary>
-        public bool FileJsonLog { get; set; }
+        public bool FileJsonLog { get; set; } = false;
 
         /// <summary>
         /// 需要记录到日志的HTTP请求头键
