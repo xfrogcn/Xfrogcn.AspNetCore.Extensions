@@ -67,10 +67,10 @@ namespace Xfrogcn.AspNetCore.Extensions
             {
                 var logger = Serilog.Log.Logger;
 
-                //if (_config.MaxLogDays <= 0)
-                //{
-                //    return;
-                //}
+                if (_config.MaxLogDays <= 0)
+                {
+                    return;
+                }
 
                 _logger.LogInformation("开始清理日志");
 
@@ -108,7 +108,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                             }
                             catch (Exception e)
                             {
-                                _logger.LogError(e, "删除日志文件失败, {0}", relativePath);
+                                _logger.LogDebug(e, "删除日志文件失败, {0}", relativePath);
                             }
                         }
                     }
@@ -126,7 +126,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                         }
                         catch (Exception e)
                         {
-                            _logger.LogError(e, "删除空目录失败：{0}", relativePath);
+                            _logger.LogDebug(e, "删除空目录失败：{0}", relativePath);
                         }
                     }
                 }

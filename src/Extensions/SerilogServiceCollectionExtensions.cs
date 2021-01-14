@@ -162,8 +162,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                              rollOnFileSizeLimit: true,
                              fileSizeLimitBytes: apiConfig.MaxLogFileSize,
                              retainedFileCountLimit: 128,
-                             hooks: archiveHooks,
-                             shared: true));
+                             hooks: archiveHooks));
                     }, key =>
                     {
                         // 自动Dispose前一天的日志
@@ -187,8 +186,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                              fileSizeLimitBytes: apiConfig.MaxLogFileSize,
                              retainedFileCountLimit: 128,
                              hooks: archiveHooks,
-                             outputTemplate: template,
-                             shared: true));
+                             outputTemplate: template));
                     }, key =>
                     {
                         // 自动Dispose前一天的日志

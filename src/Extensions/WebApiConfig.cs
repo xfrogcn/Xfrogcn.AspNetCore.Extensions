@@ -166,7 +166,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         public string LogTemplate { get; set; }
 
         /// <summary>
-        /// 日志最长保留天数
+        /// 日志最长保留天数，默认0，不自动清理日志
         /// </summary>
         public int MaxLogDays { get; set; }
 
