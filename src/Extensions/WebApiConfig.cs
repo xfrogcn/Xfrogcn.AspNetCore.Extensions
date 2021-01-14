@@ -141,7 +141,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         public List<string> HttpHeaders { get; set; }
 
         /// <summary>
-        /// 日志最大长度
+        /// 日志最大长度, 默认为8KB，此设置仅支持JSON格式，超过此长度的日志将被拆分或忽略（取决于IgnoreLongLog设置）
         /// </summary>
         public int MaxLogLength { get; set; }
 
@@ -156,9 +156,14 @@ namespace Xfrogcn.AspNetCore.Extensions
         public string LogPath { get; set; }
 
         /// <summary>
-        /// 日志文件最大容量
+        /// 日志文件最大容量,默认为100mb，当超过此设置大小时，产生新的日志序列文件
         /// </summary>
         public long MaxLogFileSize { get; set; }
+
+        /// <summary>
+        /// 保留的旋转日志文件数量，超过此数量的文件将自动被压缩，默认为31, 数量必须大于等于1
+        /// </summary>
+        public int RetainedFileCount { get; set; } = 31;
 
         /// <summary>
         /// 日志模版
@@ -171,7 +176,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         public int MaxLogDays { get; set; }
 
         /// <summary>
-        /// 是否忽略长日志拆分
+        /// 是否忽略长日志拆分，此设置仅支持JSON格式
         /// </summary>
         public bool IgnoreLongLog { get; set; } = false;
 

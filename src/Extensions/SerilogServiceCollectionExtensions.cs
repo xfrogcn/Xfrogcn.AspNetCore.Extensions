@@ -114,7 +114,7 @@ namespace Xfrogcn.AspNetCore.Extensions
             {
                 loggerConfiguration = loggerConfiguration.WriteTo.Console(Serilog.Events.LogEventLevel.Warning);
             }
-            if (apiConfig.FileLog)
+            if (apiConfig.FileLog || apiConfig.FileJsonLog)
             {
 
                 string path = apiConfig.GetLogPath();
@@ -161,7 +161,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                              rollingInterval: RollingInterval.Infinite,
                              rollOnFileSizeLimit: true,
                              fileSizeLimitBytes: apiConfig.MaxLogFileSize,
-                             retainedFileCountLimit: 128,
+                             retainedFileCountLimit: apiConfig.RetainedFileCount,
                              hooks: archiveHooks));
                     }, key =>
                     {
@@ -184,7 +184,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                              rollingInterval: RollingInterval.Infinite,
                              rollOnFileSizeLimit: true,
                              fileSizeLimitBytes: apiConfig.MaxLogFileSize,
-                             retainedFileCountLimit: 128,
+                             retainedFileCountLimit: apiConfig.RetainedFileCount,
                              hooks: archiveHooks,
                              outputTemplate: template));
                     }, key =>
