@@ -29,9 +29,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NormalConsoleLogging", "exa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonConsoleLogging", "examples\Logging\JsonConsoleLogging\JsonConsoleLogging.csproj", "{9698FCDA-7E88-4FA9-9EC6-8F10A9C867AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NormalFileLogging", "examples\Logging\NormalFileLogging\NormalFileLogging.csproj", "{41F7C618-09D9-4E65-B29F-D16A8A5F35FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NormalFileLogging", "examples\Logging\NormalFileLogging\NormalFileLogging.csproj", "{41F7C618-09D9-4E65-B29F-D16A8A5F35FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonFileLogging", "examples\Logging\JsonFileLogging\JsonFileLogging.csproj", "{09121C5E-F59D-450C-9331-0675DF3749E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonFileLogging", "examples\Logging\JsonFileLogging\JsonFileLogging.csproj", "{09121C5E-F59D-450C-9331-0675DF3749E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AutoMapper", "AutoMapper", "{83B4CB55-A0BB-461D-B772-4625EBBDE49F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "examples\AutoMapper\Example\Example.csproj", "{37EECC5E-028E-46AC-BBB1-0971DE723693}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -127,6 +131,18 @@ Global
 		{09121C5E-F59D-450C-9331-0675DF3749E8}.Release|x64.Build.0 = Release|Any CPU
 		{09121C5E-F59D-450C-9331-0675DF3749E8}.Release|x86.ActiveCfg = Release|Any CPU
 		{09121C5E-F59D-450C-9331-0675DF3749E8}.Release|x86.Build.0 = Release|Any CPU
+		{37EECC5E-028E-46AC-BBB1-0971DE723693}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37EECC5E-028E-46AC-BBB1-0971DE723693}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37EECC5E-028E-46AC-BBB1-0971DE723693}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{37EECC5E-028E-46AC-BBB1-0971DE723693}.Debug|x64.Build.0 = Debug|Any CPU
+		{37EECC5E-028E-46AC-BBB1-0971DE723693}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{37EECC5E-028E-46AC-BBB1-0971DE723693}.Debug|x86.Build.0 = Debug|Any CPU
+		{37EECC5E-028E-46AC-BBB1-0971DE723693}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37EECC5E-028E-46AC-BBB1-0971DE723693}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37EECC5E-028E-46AC-BBB1-0971DE723693}.Release|x64.ActiveCfg = Release|Any CPU
+		{37EECC5E-028E-46AC-BBB1-0971DE723693}.Release|x64.Build.0 = Release|Any CPU
+		{37EECC5E-028E-46AC-BBB1-0971DE723693}.Release|x86.ActiveCfg = Release|Any CPU
+		{37EECC5E-028E-46AC-BBB1-0971DE723693}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -140,6 +156,8 @@ Global
 		{9698FCDA-7E88-4FA9-9EC6-8F10A9C867AA} = {600E9390-57C8-4670-AB03-731B51C60642}
 		{41F7C618-09D9-4E65-B29F-D16A8A5F35FA} = {600E9390-57C8-4670-AB03-731B51C60642}
 		{09121C5E-F59D-450C-9331-0675DF3749E8} = {600E9390-57C8-4670-AB03-731B51C60642}
+		{83B4CB55-A0BB-461D-B772-4625EBBDE49F} = {7F67DE65-F862-4A21-8A1F-BE02F9342EFB}
+		{37EECC5E-028E-46AC-BBB1-0971DE723693} = {83B4CB55-A0BB-461D-B772-4625EBBDE49F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {57D0ED61-2307-43F1-81FE-9712E71738A9}
