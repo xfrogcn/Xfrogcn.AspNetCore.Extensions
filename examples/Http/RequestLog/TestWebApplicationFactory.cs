@@ -20,9 +20,6 @@ namespace RequestLog
                 config.FileLog = false;
                 config.ConsoleLog = true;
 
-                // 同时设置EnableClientRequestLog为true及ClientRequestLevel为Verbose，可记录客户端请求详情
-                config.EnableClientRequestLog = true;
-                config.ClientRequestLevel = Serilog.Events.LogEventLevel.Verbose;
             });
             base.ConfigureWebHost(builder);
                

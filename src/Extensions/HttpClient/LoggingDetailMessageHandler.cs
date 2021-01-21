@@ -68,7 +68,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                 var response = await base.SendAsync(request, cancellationToken);
 
                 string responseContent = string.Empty;
-                if (response != null && response.Content != null && isTextContent(response.Content.Headers?.ContentType?.MediaType) && response.Content.Headers.ContentLength <= (1024 * 1024 * 5))
+                if (response != null && response.Content != null && isTextContent(response.Content.Headers?.ContentType?.MediaType) && (response.Content.Headers.ContentLength??0) <= (1024 * 1024 * 5))
                 {
                     responseContent = await response.Content.ReadAsStringAsync();
                 }
