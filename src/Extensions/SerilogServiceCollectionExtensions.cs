@@ -98,7 +98,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                 .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", apiConfig.InnerSerilogLevels.EFCoreCommandLevel)
                 .MinimumLevel.Override("System.Net.Http.HttpClient", apiConfig.InnerSerilogLevels.AppLogLevel)
                 .MinimumLevel.Override("ServerRequest.Logger", apiConfig.InnerSerilogLevels.ServerRequestLevel)
-                .MinimumLevel.Override("ClientRequest.Logger", apiConfig.InnerSerilogLevels.ServerRequestLevel)
+                .MinimumLevel.Override("ClientRequest.Logger", apiConfig.InnerSerilogLevels.ClientRequestLevel)
                 .Destructure.ToMaximumStringLength(apiConfig.MaxLogLength);
 
             loggerConfiguration = loggerConfiguration.Enrich.FromLogContext();
