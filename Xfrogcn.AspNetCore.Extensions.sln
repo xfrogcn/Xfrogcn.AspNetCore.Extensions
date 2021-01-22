@@ -39,9 +39,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example", "examples\AutoMap
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Http", "Http", "{93FB9EA8-D911-408A-B66F-F3497C52DE29}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestLog", "examples\Http\RequestLog\RequestLog.csproj", "{499CB8C2-6F0E-4041-AE85-D50D19726F17}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RequestLog", "examples\Http\RequestLog\RequestLog.csproj", "{499CB8C2-6F0E-4041-AE85-D50D19726F17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiServer", "examples\Http\ApiServer\ApiServer.csproj", "{FFCD3404-41EC-4E6C-BF92-E8F4D33CAD7F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiServer", "examples\Http\ApiServer\ApiServer.csproj", "{FFCD3404-41EC-4E6C-BF92-E8F4D33CAD7F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpHeaderTracking", "examples\Http\HttpHeaderTracking\HttpHeaderTracking.csproj", "{D6C8F880-60C3-47A0-80E2-9047621F3D7D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -173,6 +175,18 @@ Global
 		{FFCD3404-41EC-4E6C-BF92-E8F4D33CAD7F}.Release|x64.Build.0 = Release|Any CPU
 		{FFCD3404-41EC-4E6C-BF92-E8F4D33CAD7F}.Release|x86.ActiveCfg = Release|Any CPU
 		{FFCD3404-41EC-4E6C-BF92-E8F4D33CAD7F}.Release|x86.Build.0 = Release|Any CPU
+		{D6C8F880-60C3-47A0-80E2-9047621F3D7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6C8F880-60C3-47A0-80E2-9047621F3D7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6C8F880-60C3-47A0-80E2-9047621F3D7D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D6C8F880-60C3-47A0-80E2-9047621F3D7D}.Debug|x64.Build.0 = Debug|Any CPU
+		{D6C8F880-60C3-47A0-80E2-9047621F3D7D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D6C8F880-60C3-47A0-80E2-9047621F3D7D}.Debug|x86.Build.0 = Debug|Any CPU
+		{D6C8F880-60C3-47A0-80E2-9047621F3D7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6C8F880-60C3-47A0-80E2-9047621F3D7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6C8F880-60C3-47A0-80E2-9047621F3D7D}.Release|x64.ActiveCfg = Release|Any CPU
+		{D6C8F880-60C3-47A0-80E2-9047621F3D7D}.Release|x64.Build.0 = Release|Any CPU
+		{D6C8F880-60C3-47A0-80E2-9047621F3D7D}.Release|x86.ActiveCfg = Release|Any CPU
+		{D6C8F880-60C3-47A0-80E2-9047621F3D7D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -191,6 +205,7 @@ Global
 		{93FB9EA8-D911-408A-B66F-F3497C52DE29} = {7F67DE65-F862-4A21-8A1F-BE02F9342EFB}
 		{499CB8C2-6F0E-4041-AE85-D50D19726F17} = {93FB9EA8-D911-408A-B66F-F3497C52DE29}
 		{FFCD3404-41EC-4E6C-BF92-E8F4D33CAD7F} = {93FB9EA8-D911-408A-B66F-F3497C52DE29}
+		{D6C8F880-60C3-47A0-80E2-9047621F3D7D} = {93FB9EA8-D911-408A-B66F-F3497C52DE29}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {57D0ED61-2307-43F1-81FE-9712E71738A9}

@@ -192,11 +192,11 @@ namespace Xfrogcn.AspNetCore.Extensions
         {
             EnableSerilog = true;
             SystemLogLevel = LogEventLevel.Warning;
-            AppLogLevel = LogEventLevel.Verbose;
+            AppLogLevel = LogEventLevel.Information;
             //默认记录EFCore查询语句
-            EFCoreCommandLevel = LogEventLevel.Debug;
+            EFCoreCommandLevel = LogEventLevel.Information;
             ServerRequestLevel = LogEventLevel.Information;
-            ClientRequestLevel = LogEventLevel.Verbose;
+            ClientRequestLevel = LogEventLevel.Information;
             EnableClientRequestLog = true;
             ConsoleLog = false;
             FileLog = true;
