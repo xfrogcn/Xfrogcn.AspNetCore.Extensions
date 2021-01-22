@@ -49,7 +49,7 @@ namespace Xfrogcn.AspNetCore.Extensions
                
                 if (_httpContextAccessor != null)
                 {
-                    builder.AdditionalHandlers.Insert(0, new TransRequestHeadersMessageHandler(_httpContextAccessor));
+                    builder.AdditionalHandlers.Insert(0, new TransRequestHeadersMessageHandler(_httpContextAccessor, cfg));
                 }
             };
         }

@@ -16,9 +16,11 @@ namespace Xfrogcn.AspNetCore.Extensions
     class TransRequestHeadersMessageHandler : DelegatingHandler
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public TransRequestHeadersMessageHandler(IHttpContextAccessor httpContextAccessor)
+        private readonly WebApiConfig _config;
+        public TransRequestHeadersMessageHandler(IHttpContextAccessor httpContextAccessor, WebApiConfig config)
         {
             _httpContextAccessor = httpContextAccessor;
+            _config = config;
         }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -42,10 +44,13 @@ namespace Xfrogcn.AspNetCore.Extensions
                 return;
 
             IHeaderDictionary header = httpContext.Request.Headers;
-            var incomingHeaders = new string[] { "x-" };
+            var incomingHeaders = _config?.TrackingHeaders?.HeaderRegex;
+            if (incomingHeaders == null)
+                return;
+
             foreach (string key in header.Keys)
             {
-                if (incomingHeaders.Any(x => key.StartsWith(x, StringComparison.OrdinalIgnoreCase)))
+                if (incomingHeaders.Any(x=>x.IsMatch(key)))
                 {
                     StringValues sv = header[key];
 

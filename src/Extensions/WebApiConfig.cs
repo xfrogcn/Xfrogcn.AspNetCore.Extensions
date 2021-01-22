@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Serilog.Core;
 using Serilog.Events;
 
@@ -141,6 +142,12 @@ namespace Xfrogcn.AspNetCore.Extensions
         public List<string> HttpHeaders { get; set; }
 
         /// <summary>
+        /// 链路跟踪Headers头，列表中的头将自动传递到下一个Http请求，可以使用*匹配
+        /// </summary>
+        public TrackingHeaders TrackingHeaders { get; private set; }
+
+      
+        /// <summary>
         /// 日志最大长度, 默认为8KB，此设置仅支持JSON格式，超过此长度的日志将被拆分或忽略（取决于IgnoreLongLog设置）
         /// </summary>
         public int MaxLogLength { get; set; }
@@ -194,6 +201,10 @@ namespace Xfrogcn.AspNetCore.Extensions
             ConsoleLog = false;
             FileLog = true;
             HttpHeaders = new List<string>() { "x-request-id" };
+            TrackingHeaders = new TrackingHeaders()
+            {
+                "x-*"
+            };
             MaxLogLength = 1024 * 8; //8kb
             LogPathTemplate = LogPathTemplates.DayFolderAndLoggerNameFile;
             LogPath = "Logs";
