@@ -32,11 +32,11 @@ namespace Xfrogcn.AspNetCore.Extensions
         internal SerilogLevels InnerSerilogLevels { get; } = new SerilogLevels();
 
         /// <summary>
-        /// 是否启用Serilog
+        /// 是否启用Serilog，默认为true
         /// </summary>
         public bool EnableSerilog { get; set; }
         /// <summary>
-        /// 系统日志级别
+        /// 系统日志级别，默认为Warning
         /// </summary>
         public LogEventLevel SystemLogLevel
         {
@@ -51,7 +51,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         }
 
         /// <summary>
-        /// 全局日志级别
+        /// 全局日志级别，默认为Information
         /// </summary>
         public LogEventLevel AppLogLevel
         {
@@ -66,7 +66,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         }
 
         /// <summary>
-        /// EF Core Command日志记录级别
+        /// EF Core Command日志记录级别，默认为Information
         /// </summary>
         public LogEventLevel EFCoreCommandLevel
         {
@@ -81,7 +81,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         }
 
         /// <summary>
-        /// 服务端请求日志记录级别
+        /// 服务端请求日志记录级别，默认为Information
         /// 服务端请求详情日志默认级别为Trace，故将此属性设置为Trace可开启服务端详细日志
         /// </summary>
         public LogEventLevel ServerRequestLevel
@@ -97,7 +97,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         }
 
         /// <summary>
-        /// 客户端请求日志级别
+        /// 客户端请求日志级别，默认为Information
         /// </summary>
         public LogEventLevel ClientRequestLevel
         {
@@ -112,7 +112,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         }
 
         /// <summary>
-        /// 是否允许客户端请求日志
+        /// 是否允许客户端请求日志，默认为true
         /// </summary>
         public bool EnableClientRequestLog { get; set; }
 
@@ -137,12 +137,12 @@ namespace Xfrogcn.AspNetCore.Extensions
         public bool FileJsonLog { get; set; } = false;
 
         /// <summary>
-        /// 需要记录到日志的HTTP请求头键
+        /// 需要记录到日志的HTTP请求头键，默认包含x-request-id
         /// </summary>
         public List<string> HttpHeaders { get; set; }
 
         /// <summary>
-        /// 链路跟踪Headers头，列表中的头将自动传递到下一个Http请求，可以使用*匹配
+        /// 链路跟踪Headers头，列表中的头将自动传递到下一个Http请求，可以使用*匹配，默认传递x-*
         /// </summary>
         public TrackingHeaders TrackingHeaders { get; private set; }
 
@@ -153,12 +153,12 @@ namespace Xfrogcn.AspNetCore.Extensions
         public int MaxLogLength { get; set; }
 
         /// <summary>
-        /// 日志路径模版
+        /// 日志路径模版，默认以每天为目录，日志名称作为文件名称
         /// </summary>
         public string LogPathTemplate { get; set; }
 
         /// <summary>
-        /// 日志路径
+        /// 日志路径，默认为Logs
         /// </summary>
         public string LogPath { get; set; }
 
@@ -173,7 +173,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         public int RetainedFileCount { get; set; } = 31;
 
         /// <summary>
-        /// 日志模版
+        /// 日志模版, 默认为"{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{NewLine}{Exception}"
         /// </summary>
         public string LogTemplate { get; set; }
 
@@ -183,7 +183,7 @@ namespace Xfrogcn.AspNetCore.Extensions
         public int MaxLogDays { get; set; }
 
         /// <summary>
-        /// 是否忽略长日志拆分，此设置仅支持JSON格式
+        /// 是否忽略长日志拆分，此设置仅支持JSON格式，默认为false
         /// </summary>
         public bool IgnoreLongLog { get; set; } = false;
 
