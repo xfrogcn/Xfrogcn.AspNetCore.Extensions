@@ -34,6 +34,35 @@ namespace Xfrogcn.AspNetCore.Extensions
                 return this;
             }
 
+            public ClientItem UseBasicAuth(string userName, string password)
+            {
+                SetProcessor((clientInfo, client) =>
+                {
+                    string token = $"{userName??""}:{password??""}";
+                    return Task.FromResult(new ClientCertificateToken()
+                    {
+                        token_type = "Basic",
+                        access_token = Convert.ToBase64String(Encoding.UTF8.GetBytes(token)),
+                        expires_in = -1
+                    });
+                });
+
+                SetTokenSetter((request, token) =>
+                {
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", token);
+                    return Task.CompletedTask;
+                });
+
+                return this;
+            }
+
+            public ClientItem UseOIDCAuth()
+            {
+                Processor = CertificateProcessor.OIDC;
+                TokenSetter = Xfrogcn.AspNetCore.Extensions.SetTokenProcessor.Bearer;
+                return this;
+            }
+
             public ClientItem SetTokenSetter(SetTokenProcessor processor)
             {
                 TokenSetter = processor;
