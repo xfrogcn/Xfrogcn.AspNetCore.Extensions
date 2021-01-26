@@ -34,7 +34,14 @@ namespace Xfrogcn.AspNetCore.Extensions
                 return this;
             }
 
-            public ClientItem UseBasicAuth(string userName, string password)
+            /// <summary>
+            /// 使用Basic认证方式
+            /// </summary>
+            /// <param name="userName">用户名</param>
+            /// <param name="password">密码</param>
+            /// <param name="expires_ind">令牌缓存时间，默认为-1，表示不缓存</param>
+            /// <returns></returns>
+            public ClientItem UseBasicAuth(string userName, string password, long expires_ind = -1)
             {
                 SetProcessor((clientInfo, client) =>
                 {
@@ -56,6 +63,10 @@ namespace Xfrogcn.AspNetCore.Extensions
                 return this;
             }
 
+            /// <summary>
+            /// 使用OIDC认证方式
+            /// </summary>
+            /// <returns></returns>
             public ClientItem UseOIDCAuth()
             {
                 Processor = CertificateProcessor.OIDC;
