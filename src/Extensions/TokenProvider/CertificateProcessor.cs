@@ -58,9 +58,12 @@ namespace Xfrogcn.AspNetCore.Extensions
 
             public override async Task<ClientCertificateToken> GetToken(ClientCertificateInfo clientInfo, IHttpClientFactory clientFactory)
             {
-                var httpClient = clientFactory.CreateClient(HTTP_CLIENT_NAME);
+                HttpClient httpClient = clientFactory.CreateClient(HTTP_CLIENT_NAME);
 
-                httpClient.BaseAddress = new Uri(clientInfo.AuthUrl);
+                if (!string.IsNullOrEmpty(clientInfo.AuthUrl))
+                {
+                    httpClient.BaseAddress = new Uri(clientInfo.AuthUrl);
+                }
 
                 var token = await _proc(clientInfo, httpClient);
 
