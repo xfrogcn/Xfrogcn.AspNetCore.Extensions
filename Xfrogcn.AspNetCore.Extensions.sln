@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignorecd = .gitignorecd
 		Directory.Build.props = Directory.Build.props
 		README.md = README.md
+		并行队列.png = 并行队列.png
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{7F67DE65-F862-4A21-8A1F-BE02F9342EFB}"
@@ -47,7 +48,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HttpHeaderTracking", "examp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MockHttpRequest", "examples\MockHttpRequest\MockHttpRequest.csproj", "{C29D08C2-C584-4E7E-A969-B10EC2FC9DD7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicAuth", "examples\Http\BasicAuth\BasicAuth.csproj", "{06E7B964-E4C4-4DA1-9B55-24BEFEDB34A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BasicAuth", "examples\Http\BasicAuth\BasicAuth.csproj", "{06E7B964-E4C4-4DA1-9B55-24BEFEDB34A9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
