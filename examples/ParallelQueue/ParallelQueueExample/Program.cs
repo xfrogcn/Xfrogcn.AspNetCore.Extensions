@@ -49,6 +49,7 @@ namespace ParallelQueueExample
               {
                   var factory = host.Services.GetRequiredService<IParallelQueueProducerFactory>();
                   var producer = factory.CreateProducer<NotifyMessage>(QUEUE_NAME);
+                  int i = 0;
                   while (true)
                   {
                       await producer.TryAddAsync(new NotifyMessage()
@@ -57,6 +58,13 @@ namespace ParallelQueueExample
                           Output = 0
                       }, default);
                       await Task.Delay(100);
+
+                      i++;
+                      if (i > 100)
+                      {
+                          await producer.StopAsync(default);
+                          break;
+                      }
                   }
               });
 
