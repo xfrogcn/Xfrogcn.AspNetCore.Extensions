@@ -15,7 +15,11 @@ namespace ParallelQueueExample
 
             const string QUEUE_NAME = "TEST_QUEUE";
             IHost host = Host.CreateDefaultBuilder()
-                .UseExtensions()
+                .UseExtensions(config=>
+                {
+                    config.ConsoleLog = true;
+                    config.FileLog = false;
+                })
                 .ConfigureServices(services =>
                 {
                     // 添加一个名称为TEST_QUEUE的并行处理队列
@@ -44,13 +48,19 @@ namespace ParallelQueueExample
             _ = Task.Run(async () =>
               {
                   var factory = host.Services.GetRequiredService<IParallelQueueProducerFactory>();
-                  factory.CreateProducer<NotifyMessage>(QUEUE_NAME);
+                  var producer = factory.CreateProducer<NotifyMessage>(QUEUE_NAME);
                   while (true)
                   {
-
+                      await producer.TryAddAsync(new NotifyMessage()
+                      {
+                          Input = 0,
+                          Output = 0
+                      }, default);
                       await Task.Delay(100);
                   }
               });
+
+
 
             Console.ReadLine();
 
