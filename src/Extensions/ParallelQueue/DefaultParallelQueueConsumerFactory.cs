@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 
-namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
+namespace Xfrogcn.AspNetCore.Extensions
 {
     /// <summary>
     /// 默认并行队列处理器工厂

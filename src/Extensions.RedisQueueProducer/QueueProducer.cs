@@ -4,7 +4,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Xfrogcn.AspNetCore.Extensions.ParallelQueue;
 
 namespace Xfrogcn.AspNetCore.Extensions.RedisQueueProducer
 {

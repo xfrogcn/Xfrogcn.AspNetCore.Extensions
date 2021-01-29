@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
+namespace Xfrogcn.AspNetCore.Extensions
 {
     /// <summary>
     /// 并行队列执行器

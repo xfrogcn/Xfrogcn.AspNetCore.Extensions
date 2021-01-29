@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
+namespace Xfrogcn.AspNetCore.Extensions
 {
     /// <summary>
     /// 队列执行器负载情况

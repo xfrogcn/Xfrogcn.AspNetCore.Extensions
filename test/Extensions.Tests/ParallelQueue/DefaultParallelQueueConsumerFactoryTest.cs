@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Xfrogcn.AspNetCore.Extensions.ParallelQueue;
+using Xfrogcn.AspNetCore.Extensions;
 using Xunit;
 
 namespace Extensions.Tests.ParallelQueue

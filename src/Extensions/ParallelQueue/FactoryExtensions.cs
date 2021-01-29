@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
+namespace Xfrogcn.AspNetCore.Extensions
 {
     public static class FactoryExtensions
     {

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
+namespace Xfrogcn.AspNetCore.Extensions
 {
     public class QueueHandlerBase<TEntity, TState> : IQueueHandler<TEntity, TState>
     {

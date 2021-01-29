@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Xfrogcn.AspNetCore.Extensions;
-using Xfrogcn.AspNetCore.Extensions.ParallelQueue;
 using Xunit;
 
 namespace Extensions.Tests.ParallelQueue

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
 
-namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
+namespace Xfrogcn.AspNetCore.Extensions
 {
     public class DefaultParallelQueueProducerFactory : IParallelQueueProducerFactory
     {

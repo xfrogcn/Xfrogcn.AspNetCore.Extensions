@@ -1,5 +1,4 @@
 ﻿using StackExchange.Redis;
-using Xfrogcn.AspNetCore.Extensions.ParallelQueue;
 
 namespace Xfrogcn.AspNetCore.Extensions
 {

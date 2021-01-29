@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 
 [assembly: InternalsVisibleTo("Extensions.Tests")]
 
-namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
+namespace Xfrogcn.AspNetCore.Extensions
 {
     public class DefaultParallelQueueConsumer<TEntity,TState> : IParallelQueueConsumer<TEntity, TState>
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
+namespace Xfrogcn.AspNetCore.Extensions
 {
     public class ParallelQueueProducerOptions<TEntity>
     {

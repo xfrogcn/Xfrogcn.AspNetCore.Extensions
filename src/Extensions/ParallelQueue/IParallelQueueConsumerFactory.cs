@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Xfrogcn.AspNetCore.Extensions.ParallelQueue
+namespace Xfrogcn.AspNetCore.Extensions
 {
     /// <summary>
     /// 并行队列消费者工厂

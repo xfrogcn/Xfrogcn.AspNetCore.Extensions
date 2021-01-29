@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection.Extensions;
 using Xfrogcn.AspNetCore.Extensions;
-using Xfrogcn.AspNetCore.Extensions.ParallelQueue;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
