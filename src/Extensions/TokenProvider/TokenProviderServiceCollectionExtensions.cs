@@ -69,6 +69,18 @@ namespace Microsoft.Extensions.DependencyInjection
             return serviceDescriptors;
         }
 
+        public static IServiceCollection AddTokenClient(this IServiceCollection serviceDescriptors, string url, string clientId, string clientSecret, Action<ClientCertificateOptions.ClientItem> clientOptions=null)
+        {
+            return AddClientTokenProvider(serviceDescriptors, options =>
+            {
+                var client = options.AddClient(url, clientId, clientSecret);
+                if (clientOptions != null)
+                {
+                    clientOptions(client);
+                }
+            });
+        }
+
         /// <summary>
         /// 配置获取Token的HttpClient
         /// </summary>
