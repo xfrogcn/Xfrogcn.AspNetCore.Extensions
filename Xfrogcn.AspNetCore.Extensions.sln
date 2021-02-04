@@ -54,7 +54,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ParallelQueue", "ParallelQu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParallelQueueExample", "examples\ParallelQueue\ParallelQueueExample\ParallelQueueExample.csproj", "{001744A0-147F-481B-A0F9-DE396124BEC6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDKExample", "examples\Http\SDKExample\SDKExample.csproj", "{9FA75393-8C04-4EAC-8D60-8B0A62C0520F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDKExample", "examples\Http\SDKExample\SDKExample.csproj", "{9FA75393-8C04-4EAC-8D60-8B0A62C0520F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "doc", "doc", "{F94043B7-2330-43CA-A5D7-849B4A7C1990}"
+	ProjectSection(SolutionItems) = preProject
+		Logging.md = Logging.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
