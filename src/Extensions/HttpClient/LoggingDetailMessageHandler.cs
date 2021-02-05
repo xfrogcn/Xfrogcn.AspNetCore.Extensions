@@ -67,14 +67,16 @@ namespace Xfrogcn.AspNetCore.Extensions
             {
                 var response = await base.SendAsync(request, cancellationToken);
 
-                string responseContent = string.Empty;
-                if (response != null && response.Content != null && isTextContent(response.Content.Headers?.ContentType?.MediaType) && (response.Content.Headers.ContentLength??0) <= (1024 * 1024 * 5))
-                {
-                    responseContent = await response.Content.ReadAsStringAsync();
-                }
+                
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
-                    if(response == null)
+                    string responseContent = string.Empty;
+                    if (response != null && response.Content != null && isTextContent(response.Content.Headers?.ContentType?.MediaType) && (response.Content.Headers.ContentLength ?? 0) <= (1024 * 1024 * 5))
+                    {
+                        responseContent = await response.Content.ReadAsStringAsync();
+                    }
+
+                    if (response == null)
                     {
                         responseContent = "请求应答返回null";
                     }
