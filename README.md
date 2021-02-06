@@ -31,6 +31,8 @@ ASP.NET Core扩展库是针对.NET Core常用功能的扩展，包含日志、To
   - 列表类型转换
   - 枚举类型与string类型间的转换
   - **不支持**结构体之间的转换以及结构体与类之间的转换
+
+有关轻量级实体映射的详细说明，请参考[轻量级实体映射](./doc/LightweightMapper.md)文档
   
 ## HttpClient扩展
 
