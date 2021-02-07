@@ -33,6 +33,15 @@ ASP.NET Core扩展库是针对.NET Core常用功能的扩展，包含日志、To
   - **不支持**结构体之间的转换以及结构体与类之间的转换
 
 有关轻量级实体映射的详细说明，请参考[轻量级实体映射](./doc/LightweightMapper.md)文档
+
+## AspNetCore Http服务端的扩展
+
+针对AspNetCore Http服务端，扩展库提供了以下功能：
+
+- 请求与应答详细日志记录
+- EnableBufferingAttribute特性，开启请求的Buffer（可重复读取）
+
+详细信息请参考[Http服务端扩展](./doc/HttpServer.md)
   
 ## HttpClient扩展
 
