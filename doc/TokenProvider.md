@@ -50,8 +50,83 @@
 
 ## 内置的认证方式
 
+令牌提供器内置了两种认证方式：
+
+- 基本认证：UseBasicAuth
+- OIDC认证：UseOIDCAuth
+
+## 内置的认证处理器
+
+扩展库提供了OIDC认证处理器，通过SetProcessor方法可进行配置：
+
+```c#
+ sc.AddClientTokenProvider(options =>
+        {
+            options.AddClient("", "TestClient", "")
+                .SetProcessor(CertificateProcessor.OIDC);
+        });
+```
+
 ## 内置的令牌缓存管理器
+
+内部提供两种缓存管理器：
+
+- 本地缓存: 令牌信息缓存到本机
+- 分布式缓存：通过注入的IDistributedCache来缓存令牌
+
+可以通过SetTokenCacheManager方法来指定缓存管理器工厂：
+
+```c#
+ sc.AddClientTokenProvider(options =>
+        {
+            options.AddClient("", "TestClient", "")
+                // 本地缓存
+                // .SetTokenCacheManager( TokenCacheManager.MemoryCacheFactory )
+                // 分布式缓存
+                .SetTokenCacheManager(TokenCacheManager.DistributedCacheFactory);
+        });
+```
 
 ## 内置的令牌设置器
 
+扩展库提供两种令牌设置器：
+
+- Bearer：将令牌设置到认证请求头
+- QueryString：将令牌附加到请求的查询字符串中
+
+可通过SetTokenSetter进行配置：
+
+```c#
+ sc.AddClientTokenProvider(options =>
+        {
+            options.AddClient("", "TestClient", "")
+                // .SetTokenSetter(SetTokenProcessor.Bearer)
+                .SetTokenSetter(SetTokenProcessor.QueryString);
+        });
+```
+
 ## 自定义
+
+如果内置的认证方式或组件无法满足需求，可替换实现相应的自定义组件
+
+1. 自定义认证处理器
+
+    自定义认证处理器支持两种方式：
+
+   - 实现一个CertificateProcessor的子类
+   - 支持配置一个Func&lt;ClientCertificateInfo, HttpClient, Task&lt;ClientCertificateToken&gt;&gt;处理委托, 该委托传入认证客户端信息、请求Token所使用的HttpClient，需要委托返回令牌信息
+
+2. 自定义令牌缓存管理器
+
+    要自定义令牌缓存管理器，需要实现自己的TokenCacheManager，然后通过SetTokenCacheManager来设置缓存管理器的创建委托。
+
+3. 自定义令牌设置器
+
+    自定义令牌设置器支持两种方式：
+
+   - 实现一个SetTokenProcessor的子类
+   - 支持配置一个Func&lt;HttpRequestMessage, string, Task&gt;处理委托, 该委托传入当前请求消息以及令牌字符串
+
+4. 自定义应答检查器
+
+    应答检查器用于从Http应答中判断令牌是否失效，要实现自己的应答检查器，只需实现CheckResponseProcessor的子类，然后通过SetResponseChecker来配置
