@@ -49,12 +49,12 @@ ASP.NET Core扩展库是针对.NET Core常用功能的扩展，包含日志、To
 
 HttpClient包含以下功能：
 
-- 针对HttpClient的相关扩展方法
-- 针对HttpRequestMessage及HttpResponseMessage的扩展方法
+- 针对HttpClient的相关扩展方法，请参考[此文档](./doc/HttpClient.md)
+- 针对HttpRequestMessage及HttpResponseMessage的扩展方法，请参考[此文档](./doc/HttpMessageExtensions.md)
 - 请求日志记录
-- 请求头的自动传递（请求链路跟踪）
-- Http请求模拟（用于测试或模拟第三方服务）
-- Http受限请求中，可自动获取及管理访问令牌
+- 请求头的自动传递（请求链路跟踪），请参考[此文档](./doc/RequestTracing.md)
+- Http请求模拟（用于测试或模拟第三方服务），请参考[此文档](./doc/MockHttpReuest.md)
+- Http受限请求中，可自动获取及管理访问令牌，请参考[此文档](./doc/TokenRequest.md)
 
 ## 令牌提供器
 
@@ -68,6 +68,8 @@ HttpClient包含以下功能：
 - 访问令牌的获取器（即如何从认证服务中获取指定客户端的访问令牌）
 - 访问令牌的设置器（即如何在Http请求中设置访问令牌）
 - 访问令牌的失效判断器（即如何判断请求令牌失效）
+
+有关令牌提供器的详细说明，请参考[此文档](./doc/TokenProvider.md)
 
 ## 并行队列处理
 
