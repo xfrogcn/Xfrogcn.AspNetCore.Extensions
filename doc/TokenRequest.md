@@ -39,3 +39,5 @@ HttpClient与令牌提供器之间通过指定的ClientID关联
     var client = httpFactory.CreateClient("");
     string response = await client.GetAsync<string>("/limit");
 ```
+
+有关示例，请参考示例项目`examples/Http/BasicAuth`
