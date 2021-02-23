@@ -1,10 +1,13 @@
 <Project>
   <PropertyGroup>
-    <PackageVersion>1.0.0-beta2021011801</PackageVersion>
+    <PackageVersion>1.0.0</PackageVersion>
     <Authors>王海波</Authors>
     <Copyright>王海波</Copyright>
     <RepositoryUrl>https://github.com/xfrogcn/Xfrogcn.AspNetCore.Extensions</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageIcon>package-icon.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -18,4 +21,10 @@
 
     <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\package-icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
 </Project>

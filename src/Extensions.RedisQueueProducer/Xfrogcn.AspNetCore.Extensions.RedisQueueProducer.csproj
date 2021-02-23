@@ -5,6 +5,8 @@
     <AssemblyName>Xfrogcn.AspNetCore.Extensions.RedisQueueProducer</AssemblyName>
     <RootNamespace>Xfrogcn.AspNetCore.Extensions</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>parallel queue producer for redis MQ</Description>
+    <PackageReleaseNotes>parallel queue producer for redis MQ</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

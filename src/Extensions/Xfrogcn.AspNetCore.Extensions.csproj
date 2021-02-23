@@ -7,6 +7,8 @@
     <Authors>王海波</Authors>
     <Copyright>王海波</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>AspNetCore extensions library，includes function as  logging, HTTP requests, authentication token management, parallel queue processing, and more</Description>
+    <PackageReleaseNotes>AspNetCore extensions library，includes function as  logging, HTTP requests, authentication token management, parallel queue processing, and more</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
